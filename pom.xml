@@ -23,6 +23,49 @@
 		</license>
 	</licenses>
 
+	<developers>
+		<developer>
+			<id>ctrueden</id>
+			<name>Curtis Rueden</name>
+			<email>ctrueden@wisc.edu</email>
+			<url>http://loci.wisc.edu/people/curtis-rueden</url>
+			<organization>UW-Madison LOCI</organization>
+			<organizationUrl>http://loci.wisc.edu/</organizationUrl>
+			<roles>
+				<role>architect</role>
+				<role>developer</role>
+			</roles>
+			<timezone>-6</timezone>
+		</developer>
+	</developers>
+
+	<mailingLists>
+		<mailingList>
+			<name>SciJava</name>
+			<subscribe>https://groups.google.com/group/scijava</subscribe>
+			<unsubscribe>https://groups.google.com/group/scijava</unsubscribe>
+			<post>scijava@googlegroups.com</post>
+			<archive>https://groups.google.com/group/scijava</archive>
+		</mailingList>
+	</mailingLists>
+
+	<scm>
+		<connection>scm:git:git://github.com/scijava/scijava-ui-swing</connection>
+		<developerConnection>scm:git:git@github.com:scijava/scijava-ui-swing</developerConnection>
+		<tag>HEAD</tag>
+		<url>https://github.com/scijava/scijava-ui-swing</url>
+	</scm>
+
+	<issueManagement>
+		<system>GitHub Issues</system>
+		<url>http://github.com/scijava/scijava-ui-swing/issues</url>
+	</issueManagement>
+
+	<ciManagement>
+		<system>Jenkins</system>
+		<url>http://jenkins.imagej.net/</url>
+	</ciManagement>
+
 	<repositories>
 		<repository>
 			<id>imagej.public</id>
@@ -87,48 +130,5 @@ Wisconsin-Madison.</organizationName>
 			</plugin>
 		</plugins>
 	</build>
-
-	<developers>
-		<developer>
-			<id>ctrueden</id>
-			<name>Curtis Rueden</name>
-			<email>ctrueden@wisc.edu</email>
-			<url>http://loci.wisc.edu/people/curtis-rueden</url>
-			<organization>UW-Madison LOCI</organization>
-			<organizationUrl>http://loci.wisc.edu/</organizationUrl>
-			<roles>
-				<role>architect</role>
-				<role>developer</role>
-			</roles>
-			<timezone>-6</timezone>
-		</developer>
-	</developers>
-
-	<issueManagement>
-		<system>GitHub Issues</system>
-		<url>http://github.com/scijava/scijava-ui-swing/issues</url>
-	</issueManagement>
-
-	<ciManagement>
-		<system>Jenkins</system>
-		<url>http://jenkins.imagej.net/</url>
-	</ciManagement>
-
-	<mailingLists>
-		<mailingList>
-			<name>SciJava</name>
-			<subscribe>https://groups.google.com/group/scijava</subscribe>
-			<unsubscribe>https://groups.google.com/group/scijava</unsubscribe>
-			<post>scijava@googlegroups.com</post>
-			<archive>https://groups.google.com/group/scijava</archive>
-		</mailingList>
-	</mailingLists>
-
-	<scm>
-		<connection>scm:git:git://github.com/scijava/scijava-ui-swing</connection>
-		<developerConnection>scm:git:git@github.com:scijava/scijava-ui-swing</developerConnection>
-		<tag>HEAD</tag>
-		<url>https://github.com/scijava/scijava-ui-swing</url>
-	</scm>
 
 </project>
