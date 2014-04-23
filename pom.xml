@@ -63,7 +63,7 @@
 
 	<ciManagement>
 		<system>Jenkins</system>
-		<url>http://jenkins.imagej.net/</url>
+		<url>http://jenkins.imagej.net/job/SciJava-UI-Swing/</url>
 	</ciManagement>
 
 	<repositories>
