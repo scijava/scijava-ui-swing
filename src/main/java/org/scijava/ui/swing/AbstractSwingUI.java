@@ -195,6 +195,7 @@ public abstract class AbstractSwingUI extends AbstractUserInterface {
 		final AWTInputEventDispatcher inputDispatcher =
 			new AWTInputEventDispatcher(null, eventService);
 		appFrame.addEventDispatcher(inputDispatcher);
+		statusBar.addEventDispatcher(inputDispatcher);
 
 		// listen for window events on the app frame
 		final AWTWindowEventDispatcher windowDispatcher =

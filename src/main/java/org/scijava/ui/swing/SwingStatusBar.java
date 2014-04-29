@@ -31,8 +31,6 @@
 package org.scijava.ui.swing;
 
 import java.awt.BorderLayout;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -49,13 +47,14 @@ import org.scijava.plugin.Parameter;
 import org.scijava.ui.DialogPrompt.MessageType;
 import org.scijava.ui.StatusBar;
 import org.scijava.ui.UIService;
+import org.scijava.ui.awt.AWTInputEventDispatcher;
 
 /**
  * Swing implementation of {@link StatusBar}.
  * 
  * @author Curtis Rueden
  */
-public class SwingStatusBar extends JPanel implements StatusBar, MouseListener {
+public class SwingStatusBar extends JPanel implements StatusBar {
 
 	private final JLabel statusText;
 	private final JProgressBar progressBar;
@@ -82,7 +81,12 @@ public class SwingStatusBar extends JPanel implements StatusBar, MouseListener {
 		setLayout(new BorderLayout());
 		add(statusText, BorderLayout.CENTER);
 		add(progressBar, BorderLayout.EAST);
-		statusText.addMouseListener(this);
+	}
+
+	// -- SwingStatusBar methods --
+
+	public void addEventDispatcher(final AWTInputEventDispatcher dispatcher) {
+		dispatcher.register(this, false, true);
 	}
 
 	// -- StatusBar methods --
@@ -111,37 +115,6 @@ public class SwingStatusBar extends JPanel implements StatusBar, MouseListener {
 		else {
 			progressBar.setVisible(false);
 		}
-	}
-
-	// -- MouseListener methods --
-
-	@Override
-	public void mouseClicked(final MouseEvent e) {
-		// NB: no action needed
-	}
-
-	@Override
-	public void mouseEntered(final MouseEvent e) {
-		// NB: no action needed
-	}
-
-	@Override
-	public void mouseExited(final MouseEvent e) {
-		// NB: no action needed
-	}
-
-	@Override
-	public void mousePressed(final MouseEvent e) {
-		// FIXME: respond to MouseEvent on status bar in agnostic way
-//		final OptionsMemoryAndThreads options =
-//			optionsService.getOptions(OptionsMemoryAndThreads.class);
-//		if (options.isRunGcOnClick()) System.gc();
-//		statusService.showStatus(appService.getApp().getInfo(true));
-	}
-
-	@Override
-	public void mouseReleased(final MouseEvent e) {
-		// NB: no action needed
 	}
 
 	// -- Event handlers --
