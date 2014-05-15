@@ -69,7 +69,9 @@ import org.scijava.widget.FileWidget;
  * @author Barry DeZonia
  * @author Grant Harris
  */
-public abstract class AbstractSwingUI extends AbstractUserInterface {
+public abstract class AbstractSwingUI extends AbstractUserInterface implements
+	SwingUI
+{
 
 	@Parameter
 	private AppService appService;

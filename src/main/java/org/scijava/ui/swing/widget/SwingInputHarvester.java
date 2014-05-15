@@ -38,7 +38,7 @@ import org.scijava.module.process.PreprocessorPlugin;
 import org.scijava.plugin.Plugin;
 import org.scijava.ui.AbstractInputHarvesterPlugin;
 import org.scijava.ui.swing.SwingDialog;
-import org.scijava.ui.swing.sdi.SwingUI;
+import org.scijava.ui.swing.SwingUI;
 import org.scijava.widget.InputHarvester;
 import org.scijava.widget.InputPanel;
 

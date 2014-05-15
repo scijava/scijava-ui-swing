@@ -28,66 +28,16 @@
  * #L%
  */
 
-package org.scijava.ui.swing.widget;
-
-import javax.swing.JComponent;
-import javax.swing.JPanel;
-
-import net.miginfocom.swing.MigLayout;
-
-import org.scijava.ui.AbstractUIInputWidget;
-import org.scijava.ui.UserInterface;
-import org.scijava.ui.swing.SwingUI;
-import org.scijava.widget.WidgetModel;
+package org.scijava.ui.swing;
 
 /**
- * Common superclass for Swing-based input widgets.
+ * Swing-based SDI user interface for ImageJ.
  * 
  * @author Curtis Rueden
+ * @author Grant Harris
  */
-public abstract class SwingInputWidget<T> extends
-	AbstractUIInputWidget<T, JPanel>
-{
+public interface SwingUI {
 
-	private JPanel uiComponent;
-
-	// -- WrapperPlugin methods --
-
-	@Override
-	public void set(final WidgetModel model) {
-		super.set(model);
-		uiComponent = new JPanel();
-		final MigLayout layout =
-			new MigLayout("fillx,ins 3 0 3 0", "[fill,grow|pref]");
-		uiComponent.setLayout(layout);
-	}
-
-	// -- UIComponent methods --
-
-	@Override
-	public JPanel getComponent() {
-		return uiComponent;
-	}
-
-	@Override
-	public Class<JPanel> getComponentType() {
-		return JPanel.class;
-	}
-
-	// -- AbstractUIInputWidget methods --
-
-	@Override
-	protected UserInterface ui() {
-		return ui(SwingUI.NAME);
-	}
-
-	// -- Helper methods --
-
-	/** Assigns the model's description as the given component's tool tip. */
-	protected void setToolTip(final JComponent c) {
-		final String desc = get().getItem().getDescription();
-		if (desc == null || desc.isEmpty()) return;
-		c.setToolTipText(desc);
-	}
+	public static final String NAME = "swing";
 
 }

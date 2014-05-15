@@ -47,18 +47,17 @@ import org.scijava.ui.awt.AWTInputEventDispatcher;
 import org.scijava.ui.awt.AWTWindowEventDispatcher;
 import org.scijava.ui.swing.AbstractSwingUI;
 import org.scijava.ui.swing.SwingApplicationFrame;
+import org.scijava.ui.swing.SwingUI;
 import org.scijava.ui.swing.viewer.SwingDisplayWindow;
 
 /**
- * Swing-based SDI user interface for ImageJ.
+ * Swing-based SDI UI for ImageJ.
  * 
  * @author Curtis Rueden
  * @author Grant Harris
  */
 @Plugin(type = UserInterface.class, name = SwingUI.NAME)
-public class SwingUI extends AbstractSwingUI {
-
-	public static final String NAME = "swing";
+public class SwingSDIUI extends AbstractSwingUI {
 
 	@Parameter
 	private EventService eventService;
