@@ -33,7 +33,7 @@ package org.scijava.ui.swing.viewer.text;
 import org.scijava.display.Display;
 import org.scijava.plugin.Plugin;
 import org.scijava.ui.UserInterface;
-import org.scijava.ui.swing.AbstractSwingUI;
+import org.scijava.ui.swing.SwingUI;
 import org.scijava.ui.viewer.DisplayViewer;
 import org.scijava.ui.viewer.DisplayWindow;
 import org.scijava.ui.viewer.text.AbstractTextDisplayViewer;
@@ -48,8 +48,7 @@ public class SwingTextDisplayViewer extends AbstractTextDisplayViewer {
 
 	@Override
 	public boolean isCompatible(final UserInterface ui) {
-		// TODO: Consider whether to use an interface for Swing UIs instead?
-		return ui instanceof AbstractSwingUI;
+		return ui instanceof SwingUI;
 	}
 
 	@Override
