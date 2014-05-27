@@ -95,11 +95,10 @@ public class SwingTextWidget extends SwingInputWidget<String> implements
 		final int columns = model.getItem().getColumnCount();
 
 		// construct text widget of the appropriate style, if specified
-		final String style = model.getItem().getWidgetStyle();
-		if (TextWidget.AREA_STYLE.equals(style)) {
+		if (model.isStyle(TextWidget.AREA_STYLE)) {
 			textComponent = new JTextArea("", 5, columns);
 		}
-		else if (TextWidget.PASSWORD_STYLE.equals(style)) {
+		else if (model.isStyle(TextWidget.PASSWORD_STYLE)) {
 			textComponent = new JPasswordField("", columns);
 		}
 		else {
