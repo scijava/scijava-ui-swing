@@ -73,6 +73,10 @@
 		</repository>
 	</repositories>
 
+	<properties>
+		<scijava-common.version>2.21.1</scijava-common.version>
+	</properties>
+
 	<dependencies>
 		<!-- SciJava dependencies -->
 		<dependency>
