@@ -59,6 +59,7 @@ import org.scijava.module.ModuleInfo;
 import org.scijava.module.ModuleItem;
 import org.scijava.module.event.ModuleEvent;
 import org.scijava.module.event.ModuleExecutedEvent;
+import org.scijava.plugin.Attr;
 import org.scijava.plugin.Menu;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
@@ -76,7 +77,7 @@ import org.scijava.ui.swing.StaticSwingUtils;
  * @author Grant Harris
  */
 @Plugin(type = Command.class, menu = { @Menu(label = "Plugins"),
-	@Menu(label = "Macros"), @Menu(label = "Record...", weight = 4) })
+	@Menu(label = "Macros"), @Menu(label = "Record...", weight = 4) }, attrs = { @Attr(name = "no-legacy") })
 public class SwingScriptRecorder extends ContextCommand {
 
 	@Parameter
