@@ -38,6 +38,7 @@ import org.scijava.command.ContextCommand;
 import org.scijava.menu.MenuConstants;
 import org.scijava.module.ModuleInfo;
 import org.scijava.module.ModuleService;
+import org.scijava.plugin.Attr;
 import org.scijava.plugin.Menu;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
@@ -53,7 +54,7 @@ import org.scijava.ui.swing.SwingDialog;
 	@Menu(label = MenuConstants.PLUGINS_LABEL,
 		weight = MenuConstants.PLUGINS_WEIGHT,
 		mnemonic = MenuConstants.PLUGINS_MNEMONIC), @Menu(label = "Utilities"),
-	@Menu(label = "Find Commands...", accelerator = "^L") })
+	@Menu(label = "Find Commands...", accelerator = "^L") }, attrs = { @Attr(name = "no-legacy") })
 public class CommandFinder extends ContextCommand {
 
 	@Parameter
