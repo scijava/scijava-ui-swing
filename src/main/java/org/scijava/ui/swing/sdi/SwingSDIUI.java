@@ -66,6 +66,24 @@ public class SwingSDIUI extends AbstractSwingUI {
 
 	@Override
 	public SwingDisplayWindow createDisplayWindow(final Display<?> display) {
+		return createDisplayWindow(display, eventService);
+	}
+
+	@Override
+	public DialogPrompt dialogPrompt(final String message, final String title,
+		final MessageType msg, final OptionType option)
+	{
+		return new SwingDialogPrompt(message, title, msg, option);
+	}
+
+	// -- Utility methods --
+
+	/**
+	 * Utility method for creating {@link SwingDisplayWindow}s.
+	 */
+	public static SwingDisplayWindow createDisplayWindow(
+		final Display<?> display, final EventService eventService)
+	{
 		final SwingDisplayWindow displayWindow = new SwingDisplayWindow();
 
 		// broadcast input events (keyboard and mouse)
@@ -78,13 +96,6 @@ public class SwingSDIUI extends AbstractSwingUI {
 		new AWTDropTargetEventDispatcher(display, eventService);
 
 		return displayWindow;
-	}
-
-	@Override
-	public DialogPrompt dialogPrompt(final String message, final String title,
-		final MessageType msg, final OptionType option)
-	{
-		return new SwingDialogPrompt(message, title, msg, option);
 	}
 
 	// -- Internal methods --
