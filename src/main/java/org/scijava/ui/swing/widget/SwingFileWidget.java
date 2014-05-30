@@ -36,13 +36,14 @@ import java.io.File;
 
 import javax.swing.Box;
 import javax.swing.JButton;
-import javax.swing.JFileChooser;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
+import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
+import org.scijava.ui.UIService;
 import org.scijava.widget.FileWidget;
 import org.scijava.widget.InputWidget;
 import org.scijava.widget.WidgetModel;
@@ -56,6 +57,9 @@ import org.scijava.widget.WidgetModel;
 public class SwingFileWidget extends SwingInputWidget<File> implements
 	FileWidget<JPanel>, ActionListener, DocumentListener
 {
+
+	@Parameter
+	private UIService uiService;
 
 	private JTextField path;
 	private JButton browse;
@@ -106,21 +110,18 @@ public class SwingFileWidget extends SwingInputWidget<File> implements
 		}
 
 		// display file chooser in appropriate mode
-		final String style = get().getItem().getWidgetStyle();
-		// TODO: Use uiService.chooseFile(file, style) instead.
-		final JFileChooser chooser = new JFileChooser(file);
-		if (FileWidget.DIRECTORY_STYLE.equals(style)) {
-			chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+		final WidgetModel model = get();
+		final String style;
+		if (model.isStyle(FileWidget.DIRECTORY_STYLE)) {
+			style = FileWidget.DIRECTORY_STYLE;
 		}
-		final int rval;
-		if (FileWidget.SAVE_STYLE.equals(style)) {
-			rval = chooser.showSaveDialog(getComponent());
+		else if (model.isStyle(FileWidget.SAVE_STYLE)) {
+			style = FileWidget.SAVE_STYLE;
 		}
-		else { // default behavior
-			rval = chooser.showOpenDialog(getComponent());
+		else {
+			style = FileWidget.OPEN_STYLE;
 		}
-		if (rval != JFileChooser.APPROVE_OPTION) return;
-		file = chooser.getSelectedFile();
+		file = uiService.chooseFile(file, style);
 		if (file == null) return;
 
 		path.setText(file.getAbsolutePath());

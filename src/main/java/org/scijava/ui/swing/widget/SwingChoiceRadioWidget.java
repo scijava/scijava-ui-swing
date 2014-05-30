@@ -111,20 +111,19 @@ public class SwingChoiceRadioWidget extends SwingInputWidget<String> implements
 	// -- Helper methods --
 
 	private boolean isRadioButtonStyle(final WidgetModel model) {
-		final String style = model.getItem().getWidgetStyle();
-		return ChoiceWidget.RADIO_BUTTON_HORIZONTAL_STYLE.equals(style) ||
-			ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE.equals(style);
+		return model.isStyle(ChoiceWidget.RADIO_BUTTON_HORIZONTAL_STYLE) ||
+			model.isStyle(ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE);
 	}
 
 	private int getBoxAxis(final WidgetModel model) {
-		final String style = model.getItem().getWidgetStyle();
-		if (ChoiceWidget.RADIO_BUTTON_HORIZONTAL_STYLE.equals(style)) {
+		if (model.isStyle(ChoiceWidget.RADIO_BUTTON_HORIZONTAL_STYLE)) {
 			return BoxLayout.X_AXIS;
 		}
-		if (ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE.equals(style)) {
+		if (model.isStyle(ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE)) {
 			return BoxLayout.Y_AXIS;
 		}
-		throw new IllegalStateException("Invalid widget style: " + style);
+		throw new IllegalStateException("Invalid widget style: " +
+			model.getItem().getWidgetStyle());
 	}
 
 	private JRadioButton getSelectedButton() {

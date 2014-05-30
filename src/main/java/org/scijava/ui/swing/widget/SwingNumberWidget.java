@@ -88,8 +88,7 @@ public class SwingNumberWidget extends SwingInputWidget<Number> implements
 		final Number stepSize = model.getStepSize();
 
 		// add optional widgets, if specified
-		final String style = model.getItem().getWidgetStyle();
-		if (NumberWidget.SCROLL_BAR_STYLE.equals(style)) {
+		if (model.isStyle(NumberWidget.SCROLL_BAR_STYLE)) {
 			int smx = softMax.intValue();
 			if (smx < Integer.MAX_VALUE) smx++;
 			scrollBar =
@@ -100,7 +99,7 @@ public class SwingNumberWidget extends SwingInputWidget<Number> implements
 			getComponent().add(scrollBar);
 			scrollBar.addAdjustmentListener(this);
 		}
-		else if (NumberWidget.SLIDER_STYLE.equals(style)) {
+		else if (model.isStyle(NumberWidget.SLIDER_STYLE)) {
 			slider =
 				new JSlider(softMin.intValue(), softMax.intValue(), softMin.intValue());
 			slider.setMajorTickSpacing((softMax.intValue() - softMin.intValue()) / 4);
