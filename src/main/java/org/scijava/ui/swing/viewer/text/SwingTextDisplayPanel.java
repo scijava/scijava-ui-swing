@@ -146,7 +146,7 @@ public class SwingTextDisplayPanel extends JScrollPane implements
 		else if (e.getEventType() == HyperlinkEvent.EventType.EXITED) {
 			hyperlinkStatus(null);
 		}
-		else if (e.getEventType() != HyperlinkEvent.EventType.ACTIVATED) {
+		else if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
 			hyperlinkActivate(e.getURL());
 		}
 	}
