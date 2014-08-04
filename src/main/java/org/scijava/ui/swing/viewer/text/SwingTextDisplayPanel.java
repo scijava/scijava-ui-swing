@@ -127,8 +127,8 @@ public class SwingTextDisplayPanel extends JScrollPane implements
 		// those in the display. We clear the control if we find a mismatch.
 
 		final StringBuffer targetText = new StringBuffer();
-		for (final String line : display) {
-			targetText.append(line + "\n");
+		for (final Object line : display) {
+			targetText.append(line.toString() + "\n");
 		}
 		final String text = targetText.toString();
 		final boolean html = text.startsWith("<html>");
