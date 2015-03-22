@@ -32,7 +32,9 @@ package org.scijava.ui.swing.sdi;
 
 import java.awt.BorderLayout;
 
+import javax.swing.JFrame;
 import javax.swing.JPanel;
+import javax.swing.WindowConstants;
 
 import org.scijava.display.Display;
 import org.scijava.event.EventService;
@@ -106,6 +108,15 @@ public class SwingSDIUI extends AbstractSwingUI {
 		final JPanel pane = new JPanel();
 		appFrame.setContentPane(pane);
 		pane.setLayout(new BorderLayout());
+	}
+
+	@Override
+	protected void setupConsole() {
+		final JFrame frame = new JFrame("Console");
+		frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+		frame.setContentPane(getConsolePane().getComponent());
+		frame.pack();
+		getConsolePane().setWindow(frame);
 	}
 
 }

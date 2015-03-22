@@ -55,6 +55,7 @@ import org.scijava.ui.awt.AWTClipboard;
 import org.scijava.ui.awt.AWTDropTargetEventDispatcher;
 import org.scijava.ui.awt.AWTInputEventDispatcher;
 import org.scijava.ui.awt.AWTWindowEventDispatcher;
+import org.scijava.ui.swing.console.SwingConsolePane;
 import org.scijava.ui.swing.menu.SwingJMenuBarCreator;
 import org.scijava.ui.swing.menu.SwingJPopupMenuCreator;
 import org.scijava.ui.viewer.DisplayViewer;
@@ -87,6 +88,7 @@ public abstract class AbstractSwingUI extends AbstractUserInterface implements
 	private SwingApplicationFrame appFrame;
 	private SwingToolBar toolBar;
 	private SwingStatusBar statusBar;
+	private SwingConsolePane consolePane;
 	private AWTClipboard systemClipboard;
 
 	// -- UserInterface methods --
@@ -104,6 +106,11 @@ public abstract class AbstractSwingUI extends AbstractUserInterface implements
 	@Override
 	public SwingStatusBar getStatusBar() {
 		return statusBar;
+	}
+
+	@Override
+	public SwingConsolePane getConsolePane() {
+		return consolePane;
 	}
 
 	@Override
@@ -167,6 +174,7 @@ public abstract class AbstractSwingUI extends AbstractUserInterface implements
 
 		toolBar = new SwingToolBar(getContext());
 		statusBar = new SwingStatusBar(getContext());
+		consolePane = new SwingConsolePane(getContext());
 
 		systemClipboard = new AWTClipboard();
 
@@ -207,6 +215,8 @@ public abstract class AbstractSwingUI extends AbstractUserInterface implements
 		dropTargetDispatcher.register(statusBar);
 		dropTargetDispatcher.register(appFrame);
 
+		setupConsole();
+
 		appFrame.pack();
 		appFrame.setVisible(true);
 	}
@@ -233,5 +243,10 @@ public abstract class AbstractSwingUI extends AbstractUserInterface implements
 	 * or MDI).
 	 */
 	protected abstract void setupAppFrame();
+
+	/**
+	 * Configures the console for subclass-specific settings (e.g., SDI or MDI).
+	 */
+	protected abstract void setupConsole();
 
 }
