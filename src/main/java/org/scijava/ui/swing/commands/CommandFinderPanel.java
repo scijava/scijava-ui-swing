@@ -71,7 +71,7 @@ import org.scijava.util.ClassUtils;
 import org.scijava.util.FileUtils;
 
 /**
- * A panel that allows the user to search for ImageJ commands. Based on the
+ * A panel that allows the user to search for SciJava commands. Based on the
  * original Command Finder plugin by Mark Longair and Johannes Schindelin.
  * 
  * @author Curtis Rueden

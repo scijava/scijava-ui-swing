@@ -37,7 +37,7 @@ import org.scijava.ui.DialogPrompt;
 import org.scijava.ui.UIService;
 
 /**
- * A demonstration of ImageJ's UI-agnostic dialog prompt capabilities.
+ * A demonstration of SciJava's UI-agnostic dialog prompt capabilities.
  * 
  * @author Grant Harris
  * @author Curtis Rueden

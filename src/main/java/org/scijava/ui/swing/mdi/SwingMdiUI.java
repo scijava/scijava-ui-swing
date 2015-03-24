@@ -52,7 +52,7 @@ import org.scijava.ui.swing.SwingApplicationFrame;
 import org.scijava.ui.swing.mdi.viewer.SwingMdiDisplayWindow;
 
 /**
- * Swing-based MDI user interface for ImageJ.
+ * Swing-based MDI user interface.
  * 
  * @author Grant Harris
  * @author Curtis Rueden

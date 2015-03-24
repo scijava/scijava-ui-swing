@@ -31,7 +31,7 @@
 package org.scijava.ui.swing;
 
 /**
- * Swing-based SDI user interface for ImageJ.
+ * Base interface for Swing-based user interfaces.
  * 
  * @author Curtis Rueden
  * @author Grant Harris

@@ -51,7 +51,7 @@ import org.scijava.ui.swing.SwingUI;
 import org.scijava.ui.swing.viewer.SwingDisplayWindow;
 
 /**
- * Swing-based SDI UI for ImageJ.
+ * Swing-based MDI user interface.
  * 
  * @author Curtis Rueden
  * @author Grant Harris
