@@ -46,7 +46,6 @@ import org.scijava.display.Display;
 import org.scijava.event.EventService;
 import org.scijava.menu.MenuService;
 import org.scijava.menu.ShadowMenu;
-import org.scijava.platform.AppEventService;
 import org.scijava.platform.event.AppMenusCreatedEvent;
 import org.scijava.plugin.Parameter;
 import org.scijava.ui.AbstractUserInterface;
@@ -75,9 +74,6 @@ public abstract class AbstractSwingUI extends AbstractUserInterface implements
 
 	@Parameter
 	private AppService appService;
-
-	@Parameter
-	private AppEventService appEventService;
 
 	@Parameter
 	private EventService eventService;
@@ -185,7 +181,7 @@ public abstract class AbstractSwingUI extends AbstractUserInterface implements
 
 			@Override
 			public void windowClosing(final WindowEvent evt) {
-				appEventService.quit();
+				appService.getApp().quit();
 			}
 
 		});
