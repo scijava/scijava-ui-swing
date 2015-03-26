@@ -34,7 +34,9 @@ import java.awt.Color;
 import java.awt.GraphicsEnvironment;
 import java.awt.Rectangle;
 
+import javax.swing.JInternalFrame;
 import javax.swing.JScrollPane;
+import javax.swing.WindowConstants;
 
 import org.scijava.Priority;
 import org.scijava.display.Display;
@@ -114,6 +116,16 @@ public class SwingMdiUI extends AbstractSwingUI {
 		desktopPane.setBackground(new Color(200, 200, 255));
 		appFrame.getContentPane().add(scrollPane);
 		appFrame.setBounds(getWorkSpaceBounds());
+	}
+
+	@Override
+	protected void setupConsole() {
+		final JInternalFrame frame = new JInternalFrame("Console");
+		desktopPane.add(frame);
+		frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+		frame.setContentPane(getConsolePane().getComponent());
+		frame.pack();
+		getConsolePane().setWindow(frame);
 	}
 
 	// -- Helper methods --

@@ -28,32 +28,34 @@
  * #L%
  */
 
-package org.scijava.ui.swing.mdi;
+package org.scijava.ui.swing.console;
 
 import org.scijava.command.Command;
-import org.scijava.plugin.Attr;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
-import org.scijava.ui.Arrangeable.Arrangement;
-import org.scijava.ui.Desktop;
+import org.scijava.ui.UIService;
 import org.scijava.ui.UserInterface;
+import org.scijava.ui.console.ConsolePane;
 
 /**
- * Arranges the Windows in an MDI environment.
- * 
- * @author Grant Harris
+ * Pops up the console window.
+ *
+ * @author Curtis Rueden
  */
-@Plugin(type = Command.class, menuPath = "Window>Tile Vertical",
-	attrs = { @Attr(name = "no-legacy") })
-public class WindowsTileVertical implements Command {
+@Plugin(type = Command.class, menuPath = "Window > Console")
+public class ShowConsole implements Command {
 
 	@Parameter
-	private UserInterface ui;
-	
+	private UIService uiService;
+
 	@Override
 	public void run() {
-		final Desktop desk = ui.getDesktop();
-		desk.setArrangement(Arrangement.VERTICAL);
+		final UserInterface ui = uiService.getDefaultUI();
+		if (ui == null) return;
+		final ConsolePane<?> console = ui.getConsolePane();
+		if (console == null) return;
+		console.show();
 	}
+
 
 }
