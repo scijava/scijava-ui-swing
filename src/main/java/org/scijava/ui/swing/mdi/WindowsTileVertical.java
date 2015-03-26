@@ -31,6 +31,7 @@
 package org.scijava.ui.swing.mdi;
 
 import org.scijava.command.Command;
+import org.scijava.plugin.Attr;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.ui.Arrangeable.Arrangement;
@@ -42,7 +43,8 @@ import org.scijava.ui.UserInterface;
  * 
  * @author Grant Harris
  */
-@Plugin(type = Command.class, menuPath = "Window>Tile Vertical")
+@Plugin(type = Command.class, menuPath = "Window>Tile Vertical",
+	attrs = { @Attr(name = "no-legacy") })
 public class WindowsTileVertical implements Command {
 
 	@Parameter
