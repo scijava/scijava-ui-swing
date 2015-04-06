@@ -271,6 +271,8 @@ public class StaticSwingUtils {
 			.getMaximumWindowBounds();
 	}
 
+	/** @deprecated Use {@link org.scijava.thread.ThreadService#queue}. */
+	@Deprecated
 	public static void dispatchToEDT(final Runnable runnable) {
 		if (!SwingUtilities.isEventDispatchThread()) {
 			SwingUtilities.invokeLater(runnable);
@@ -280,6 +282,8 @@ public class StaticSwingUtils {
 		}
 	}
 
+	/** @deprecated Use {@link org.scijava.thread.ThreadService#invoke}. */
+	@Deprecated
 	public static void dispatchToEDTWait(final Runnable runnable) {
 		if (!SwingUtilities.isEventDispatchThread()) {
 			try {
