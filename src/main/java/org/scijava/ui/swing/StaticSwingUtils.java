@@ -39,6 +39,7 @@ The Superliminal Software web site states:
 package org.scijava.ui.swing;
 
 import java.awt.Component;
+import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.GraphicsEnvironment;
 import java.awt.Insets;
@@ -73,206 +74,228 @@ import javax.swing.SwingUtilities;
  * @author Melinda Green
  */
 public class StaticSwingUtils {
-  /// to disallow instantiation/
 
-  private StaticSwingUtils() {
-  }
+	private StaticSwingUtils() {
+		// NB: Prevent instantiation of utility class.
+	}
 
-  public static JButton createButton16(ImageIcon icon) {
-    return createButton16(icon, null);
-  }
+	public static JButton createButton16(final ImageIcon icon) {
+		return createButton16(icon, null);
+	}
 
-  public static JButton createButton16(ImageIcon icon, String toolTip) {
-    JButton newButton = new JButton();
-    newButton.setMargin(new Insets(0, 0, 0, 0));
-    newButton.setMinimumSize(new Dimension(16, 16));
-    if (toolTip != null) {
-      newButton.setToolTipText(toolTip);
-    }
-    newButton.setIcon(icon);
-    return newButton;
-  }
+	public static JButton createButton16(final ImageIcon icon,
+		final String toolTip)
+	{
+		final JButton newButton = new JButton();
+		newButton.setMargin(new Insets(0, 0, 0, 0));
+		newButton.setMinimumSize(new Dimension(16, 16));
+		if (toolTip != null) {
+			newButton.setToolTipText(toolTip);
+		}
+		newButton.setIcon(icon);
+		return newButton;
+	}
 
-  /**
-   * Adds a control hot key to the containing window of a component.
-   * In the case of buttons and menu items it also attaches the given action to the component itself.
-   *
-   * @param key one of the KeyEvent keyboard constants
-   * @param to component to map to
-   * @param actionName unique action name for the component's action map
-   * @param action callback to notify when control key is pressed
-   */
-  public static void addHotKey(int key, JComponent to, String actionName, Action action) {
-    KeyStroke keystroke = KeyStroke.getKeyStroke(key, java.awt.event.InputEvent.CTRL_MASK);
-    InputMap map = to.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
-    map.put(keystroke, actionName);
-    to.getActionMap().put(actionName, action);
-    if (to instanceof JMenuItem) {
-      ((JMenuItem) to).setAccelerator(keystroke);
-    }
-    if (to instanceof AbstractButton) /// includes JMenuItem/
-    {
-      ((AbstractButton) to).addActionListener(action);
-    }
-  }
+	/**
+	 * Adds a control hot key to the containing window of a component. In the case
+	 * of buttons and menu items it also attaches the given action to the
+	 * component itself.
+	 *
+	 * @param key one of the KeyEvent keyboard constants
+	 * @param to component to map to
+	 * @param actionName unique action name for the component's action map
+	 * @param action callback to notify when control key is pressed
+	 */
+	public static void addHotKey(final int key, final JComponent to,
+		final String actionName, final Action action)
+	{
+		final KeyStroke keystroke =
+			KeyStroke.getKeyStroke(key, java.awt.event.InputEvent.CTRL_MASK);
+		final InputMap map = to.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+		map.put(keystroke, actionName);
+		to.getActionMap().put(actionName, action);
+		if (to instanceof JMenuItem) {
+			((JMenuItem) to).setAccelerator(keystroke);
+		}
+		if (to instanceof AbstractButton) // / includes JMenuItem/
+		{
+			((AbstractButton) to).addActionListener(action);
+		}
+	}
 
-  /**
-   * Finds the top-level JFrame in the component tree containing a given component.
-   * @param comp leaf component to search up from
-   * @return the containing JFrame or null if none
-   */
-  public static JFrame getTopFrame(Component comp) {
-    if (comp == null) return null;
-    Component top = comp;
-    while (top.getParent() != null) {
-      top = top.getParent();
-    }
-    if (top instanceof JFrame) return (JFrame) top;
-    return null;
-  }
+	/**
+	 * Finds the top-level JFrame in the component tree containing a given
+	 * component.
+	 *
+	 * @param comp leaf component to search up from
+	 * @return the containing JFrame or null if none
+	 */
+	public static JFrame getTopFrame(final Component comp) {
+		if (comp == null) return null;
+		Component top = comp;
+		while (top.getParent() != null) {
+			top = top.getParent();
+		}
+		if (top instanceof JFrame) return (JFrame) top;
+		return null;
+	}
 
-  /**
-   * Different platforms use different mouse gestures as pop-up triggers.
-   * This class unifies them. Just implement the abstract popUp method
-   * to add your handler.
-   */
-  public static abstract class PopperUpper extends MouseAdapter {
-    /// To work properly on all platforms, must check on mouse press as well as release/
+	/**
+	 * Different platforms use different mouse gestures as pop-up triggers. This
+	 * class unifies them. Just implement the abstract popUp method to add your
+	 * handler.
+	 */
+	public static abstract class PopperUpper extends MouseAdapter {
 
-    @Override
-		public void mousePressed(MouseEvent e) {
-      if (e.isPopupTrigger()) {
-        popUp(e);
-      }
-    }
+		// To work properly on all platforms, must check on mouse press as well as
+		// release
 
-    @Override
-		public void mouseReleased(MouseEvent e) {
-      if (e.isPopupTrigger()) {
-        popUp(e);
-      }
-    }
+		@Override
+		public void mousePressed(final MouseEvent e) {
+			if (e.isPopupTrigger()) {
+				popUp(e);
+			}
+		}
 
-    protected abstract void popUp(MouseEvent e);
-  }
-  /// simple Clipboard string routines/
+		@Override
+		public void mouseReleased(final MouseEvent e) {
+			if (e.isPopupTrigger()) {
+				popUp(e);
+			}
+		}
 
-  public static void placeInClipboard(String str) {
-    Toolkit.getDefaultToolkit().getSystemClipboard().setContents(
-            new StringSelection(str), null);
-  }
+		protected abstract void popUp(MouseEvent e);
+	}
 
-  public static String getFromClipboard() {
-    String str = null;
-    try {
-      str = (String) Toolkit.getDefaultToolkit().getSystemClipboard().getContents(null).getTransferData(
-              DataFlavor.stringFlavor);
-    } catch (UnsupportedFlavorException e) {
-      e.printStackTrace();
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
-    return str;
-  }
+	// / simple Clipboard string routines/
 
-  // --- Ultimate Parent ---------------------------------------------
-  // Find ultimate parent window, even if in a popup
-  // Possible usage:
-  //   public void actionPerformed (ActionEvent evt) {
-  //   Component c = findUltimateParent((Component) evt.getSource());
-  // NEEDS TESTING
+	public static void placeInClipboard(final String str) {
+		Toolkit.getDefaultToolkit().getSystemClipboard().setContents(
+			new StringSelection(str), null);
+	}
 
-  public Component findUltimateParent(Component c) {
-    Component parent = c;
-    while (null != parent.getParent()) {
-      parent = parent.getParent();
-      if (parent instanceof JPopupMenu) {
-        JPopupMenu popup = (JPopupMenu) parent;
-        parent = popup.getInvoker();
-      }
-    }
-    return parent;
-  }
-  // == Diagnostics =======================================================
+	public static String getFromClipboard() {
+		String str = null;
+		try {
+			str =
+				(String) Toolkit.getDefaultToolkit().getSystemClipboard().getContents(
+					null).getTransferData(DataFlavor.stringFlavor);
+		}
+		catch (final UnsupportedFlavorException e) {
+			e.printStackTrace();
+		}
+		catch (final IOException e) {
+			e.printStackTrace();
+		}
+		return str;
+	}
 
-  private static final int DEFAULT_X = 5;
-  private static final int DEFAULT_Y = 80;
-  
-  private static Point lastFramePosition = new Point(DEFAULT_X, DEFAULT_Y);
+	// --- Ultimate Parent ---------------------------------------------
+	// Find ultimate parent window, even if in a popup
+	// Possible usage:
+	// public void actionPerformed (ActionEvent evt) {
+	// Component c = findUltimateParent((Component) evt.getSource());
+	// NEEDS TESTING
 
-  public static void locateCenter(java.awt.Container component) {
-    int w = component.getWidth();
-    int h = component.getHeight();
-    Rectangle bounds = getWorkSpaceBounds();
-    int x = (int) (bounds.getX() + (bounds.getWidth() - w) / 2);
-    int y = (int) (bounds.getY() + (bounds.getHeight() - h) / 2);
-    component.setLocation(x, y);
-  }
+	public Component findUltimateParent(final Component c) {
+		Component parent = c;
+		while (null != parent.getParent()) {
+			parent = parent.getParent();
+			if (parent instanceof JPopupMenu) {
+				final JPopupMenu popup = (JPopupMenu) parent;
+				parent = popup.getInvoker();
+			}
+		}
+		return parent;
+	}
 
-  public static void locateUpperRight(java.awt.Container component) {
-    int w = component.getWidth();
-    Rectangle bounds = getWorkSpaceBounds();
-    int x = (int) (bounds.getX() + bounds.getWidth() - w);
-    int y = (int) (bounds.getY());
-    component.setLocation(x, y);
-  }
+	// == Diagnostics =======================================================
 
-  public static void locateLowerRight(java.awt.Container component) {
-    int w = component.getWidth();
-    int h = component.getHeight();
-    Rectangle bounds = getWorkSpaceBounds();
-    int x = (int) (bounds.getX() + bounds.getWidth() - w);
-    int y = (int) (bounds.getY() + bounds.getHeight() - h);
-    component.setLocation(x, y);
-  }
+	private static final int DEFAULT_X = 5;
+	private static final int DEFAULT_Y = 80;
 
-  public static void locateUpperLeft(java.awt.Container component) {
-    Rectangle bounds = getWorkSpaceBounds();
-    component.setLocation((int) bounds.getX(), (int) bounds.getY());
-  }
+	private static Point lastFramePosition = new Point(DEFAULT_X, DEFAULT_Y);
 
-  public static void locateLowerLeft(java.awt.Container component) {
-    int h = component.getHeight();
-    Rectangle bounds = getWorkSpaceBounds();
-    int x = (int) (bounds.getX());
-    int y = (int) (bounds.getY() + bounds.getHeight() - h);
-    component.setLocation(x, y);
-  }
+	public static void locateCenter(final Container component) {
+		final int w = component.getWidth();
+		final int h = component.getHeight();
+		final Rectangle bounds = getWorkSpaceBounds();
+		final int x = (int) (bounds.getX() + (bounds.getWidth() - w) / 2);
+		final int y = (int) (bounds.getY() + (bounds.getHeight() - h) / 2);
+		component.setLocation(x, y);
+	}
 
-  public static Point nextFramePosition() {
-    lastFramePosition.x = lastFramePosition.x + 16;
-    lastFramePosition.y = lastFramePosition.y + 16;
-    if (lastFramePosition.x > 200) {
-      lastFramePosition.x = DEFAULT_X;
-      lastFramePosition.y = DEFAULT_Y;
-    }
-    return lastFramePosition;
-  }
+	public static void locateUpperRight(final Container component) {
+		final int w = component.getWidth();
+		final Rectangle bounds = getWorkSpaceBounds();
+		final int x = (int) (bounds.getX() + bounds.getWidth() - w);
+		final int y = (int) (bounds.getY());
+		component.setLocation(x, y);
+	}
 
-  public static Rectangle getWorkSpaceBounds() {
-    // @todo deal with default when multi-monitor
-    return GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds();
-  }
+	public static void locateLowerRight(final Container component) {
+		final int w = component.getWidth();
+		final int h = component.getHeight();
+		final Rectangle bounds = getWorkSpaceBounds();
+		final int x = (int) (bounds.getX() + bounds.getWidth() - w);
+		final int y = (int) (bounds.getY() + bounds.getHeight() - h);
+		component.setLocation(x, y);
+	}
 
-  public static void dispatchToEDT(Runnable runnable) {
-    if (!SwingUtilities.isEventDispatchThread()) {
-      SwingUtilities.invokeLater(runnable);
-    } else {
-      runnable.run();
-    }
-  }
+	public static void locateUpperLeft(final Container component) {
+		final Rectangle bounds = getWorkSpaceBounds();
+		component.setLocation((int) bounds.getX(), (int) bounds.getY());
+	}
 
-  public static void dispatchToEDTWait(Runnable runnable) {
-    if (!SwingUtilities.isEventDispatchThread()) {
-      try {
-        SwingUtilities.invokeAndWait(runnable);
-      } catch (InterruptedException ex) {
-        Logger.getLogger(StaticSwingUtils.class.getName()).log(Level.SEVERE, null, ex);
-      } catch (InvocationTargetException ex) {
-        Logger.getLogger(StaticSwingUtils.class.getName()).log(Level.SEVERE, null, ex);
-      }
-    } else {
-      runnable.run();
-    }
-  }
+	public static void locateLowerLeft(final Container component) {
+		final int h = component.getHeight();
+		final Rectangle bounds = getWorkSpaceBounds();
+		final int x = (int) (bounds.getX());
+		final int y = (int) (bounds.getY() + bounds.getHeight() - h);
+		component.setLocation(x, y);
+	}
+
+	public static Point nextFramePosition() {
+		lastFramePosition.x = lastFramePosition.x + 16;
+		lastFramePosition.y = lastFramePosition.y + 16;
+		if (lastFramePosition.x > 200) {
+			lastFramePosition.x = DEFAULT_X;
+			lastFramePosition.y = DEFAULT_Y;
+		}
+		return lastFramePosition;
+	}
+
+	public static Rectangle getWorkSpaceBounds() {
+		// @todo deal with default when multi-monitor
+		return GraphicsEnvironment.getLocalGraphicsEnvironment()
+			.getMaximumWindowBounds();
+	}
+
+	public static void dispatchToEDT(final Runnable runnable) {
+		if (!SwingUtilities.isEventDispatchThread()) {
+			SwingUtilities.invokeLater(runnable);
+		}
+		else {
+			runnable.run();
+		}
+	}
+
+	public static void dispatchToEDTWait(final Runnable runnable) {
+		if (!SwingUtilities.isEventDispatchThread()) {
+			try {
+				SwingUtilities.invokeAndWait(runnable);
+			}
+			catch (final InterruptedException ex) {
+				Logger.getLogger(StaticSwingUtils.class.getName()).log(Level.SEVERE,
+					null, ex);
+			}
+			catch (final InvocationTargetException ex) {
+				Logger.getLogger(StaticSwingUtils.class.getName()).log(Level.SEVERE,
+					null, ex);
+			}
+		}
+		else {
+			runnable.run();
+		}
+	}
 }
