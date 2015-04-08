@@ -58,6 +58,7 @@ import java.util.logging.Logger;
 
 import javax.swing.AbstractButton;
 import javax.swing.Action;
+import javax.swing.BoundedRangeModel;
 import javax.swing.ImageIcon;
 import javax.swing.InputMap;
 import javax.swing.JButton;
@@ -65,6 +66,8 @@ import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
+import javax.swing.JScrollPane;
+import javax.swing.JViewport;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 
@@ -302,4 +305,22 @@ public class StaticSwingUtils {
 			runnable.run();
 		}
 	}
+
+	// -- Utility methods - scrolling --
+
+	/** Scrolls the given {@link JScrollPane} to its bottom left corner. */
+	public static void scrollToBottom(final JScrollPane scrollPane) {
+		final JViewport viewport = scrollPane.getViewport();
+		viewport.setViewPosition(new Point(0, viewport.getView().getHeight()));
+	}
+
+	/**
+	 * Checks whether the given {@link JScrollPane} is currently scrolled to the
+	 * bottom of its view.
+	 */
+	public static boolean isScrolledToBottom(final JScrollPane scrollPane) {
+		final BoundedRangeModel m = scrollPane.getVerticalScrollBar().getModel();
+		return m.getValue() + m.getExtent() >= m.getMaximum();
+	}
+
 }
