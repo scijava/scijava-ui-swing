@@ -67,6 +67,8 @@ public class SwingConsolePane extends AbstractConsolePane<JPanel> {
 
 	private JPanel consolePanel;
 	private JTextPane textPane;
+	private JScrollPane scrollPane;
+
 	private StyledDocument doc;
 	private Style stdoutLocal;
 	private Style stderrLocal;
@@ -156,7 +158,7 @@ public class SwingConsolePane extends AbstractConsolePane<JPanel> {
 		textPanel.setLayout(new BorderLayout());
 		textPanel.add(textPane);
 
-		final JScrollPane scrollPane = new JScrollPane(textPanel);
+		scrollPane = new JScrollPane(textPanel);
 		scrollPane.setPreferredSize(new Dimension(600, 600));
 		panel.add(scrollPane);
 
