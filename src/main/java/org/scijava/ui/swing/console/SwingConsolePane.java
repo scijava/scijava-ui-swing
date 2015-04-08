@@ -37,6 +37,7 @@ import java.awt.Dimension;
 import java.awt.Font;
 
 import javax.swing.JPanel;
+import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTextPane;
 import javax.swing.text.BadLocationException;
@@ -66,6 +67,7 @@ public class SwingConsolePane extends AbstractConsolePane<JPanel> {
 	private ThreadService threadService;
 
 	private JPanel consolePanel;
+	private JScrollPane scrPane;
 	private JTextPane textPane;
 	private StyledDocument doc;
 	private Style stdoutLocal;
@@ -101,6 +103,8 @@ public class SwingConsolePane extends AbstractConsolePane<JPanel> {
 		catch (final BadLocationException exc) {
 			throw new RuntimeException(exc);
 		}
+		JScrollBar sb = scrPane.getVerticalScrollBar();
+		sb.setValue(sb.getMaximum());
 	}
 
 	@Override
@@ -160,6 +164,7 @@ public class SwingConsolePane extends AbstractConsolePane<JPanel> {
 		scrollPane.setPreferredSize(new Dimension(600, 600));
 		panel.add(scrollPane);
 
+		scrPane = scrollPane;
 		consolePanel = panel;
 	}
 
