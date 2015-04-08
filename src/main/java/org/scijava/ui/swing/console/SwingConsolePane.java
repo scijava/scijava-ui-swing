@@ -54,6 +54,7 @@ import org.scijava.thread.ThreadService;
 import org.scijava.ui.UIService;
 import org.scijava.ui.console.AbstractConsolePane;
 import org.scijava.ui.console.ConsolePane;
+import org.scijava.ui.swing.StaticSwingUtils;
 
 /**
  * Swing implementation of {@link ConsolePane}.
@@ -97,12 +98,14 @@ public class SwingConsolePane extends AbstractConsolePane<JPanel> {
 	@Override
 	public void append(final OutputEvent event) {
 		if (consolePanel == null) initConsolePanel();
+		final boolean atBottom = StaticSwingUtils.isScrolledToBottom(scrollPane);
 		try {
 			doc.insertString(doc.getLength(), event.getOutput(), getStyle(event));
 		}
 		catch (final BadLocationException exc) {
 			throw new RuntimeException(exc);
 		}
+		if (atBottom) StaticSwingUtils.scrollToBottom(scrollPane);
 	}
 
 	@Override
