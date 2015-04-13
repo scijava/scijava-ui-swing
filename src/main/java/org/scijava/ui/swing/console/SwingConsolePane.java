@@ -115,8 +115,9 @@ public class SwingConsolePane extends AbstractConsolePane<JPanel> {
 
 			@Override
 			public void run() {
-			    if (!window.isVisible())
-			        window.setVisible(true);
+				if (!window.isVisible()) {
+					window.setVisible(true);
+				}
 			}
 		});
 	}
