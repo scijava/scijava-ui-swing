@@ -110,14 +110,12 @@ public class SwingConsolePane extends AbstractConsolePane<JPanel> {
 
 	@Override
 	public void show() {
-		if (window == null) return;
+		if (window == null || window.isVisible()) return;
 		threadService.queue(new Runnable() {
 
 			@Override
 			public void run() {
-				if (!window.isVisible()) {
-					window.setVisible(true);
-				}
+				window.setVisible(true);
 			}
 		});
 	}
