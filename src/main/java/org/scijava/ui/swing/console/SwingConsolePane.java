@@ -98,14 +98,21 @@ public class SwingConsolePane extends AbstractConsolePane<JPanel> {
 	@Override
 	public void append(final OutputEvent event) {
 		if (consolePanel == null) initConsolePanel();
-		final boolean atBottom = StaticSwingUtils.isScrolledToBottom(scrollPane);
-		try {
-			doc.insertString(doc.getLength(), event.getOutput(), getStyle(event));
-		}
-		catch (final BadLocationException exc) {
-			throw new RuntimeException(exc);
-		}
-		if (atBottom) StaticSwingUtils.scrollToBottom(scrollPane);
+		threadService.queue(new Runnable() {
+
+			@Override
+			public void run() {
+				final boolean atBottom =
+					StaticSwingUtils.isScrolledToBottom(scrollPane);
+				try {
+					doc.insertString(doc.getLength(), event.getOutput(), getStyle(event));
+				}
+				catch (final BadLocationException exc) {
+					throw new RuntimeException(exc);
+				}
+				if (atBottom) StaticSwingUtils.scrollToBottom(scrollPane);
+			}
+		});
 	}
 
 	@Override
