@@ -92,6 +92,16 @@ public class SwingConsolePane extends AbstractConsolePane<JPanel> {
 		this.window = window;
 	}
 
+	public JTextPane getTextPane() {
+		if (consolePanel == null) initConsolePanel();
+		return textPane;
+	}
+
+	public JScrollPane getScrollPane() {
+		if (consolePanel == null) initConsolePanel();
+		return scrollPane;
+	}
+
 	// -- ConsolePane methods --
 
 	@Override
