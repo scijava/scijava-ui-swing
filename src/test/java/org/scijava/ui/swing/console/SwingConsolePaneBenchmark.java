@@ -30,11 +30,20 @@
 
 package org.scijava.ui.swing.console;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+import java.util.Arrays;
 import java.util.concurrent.Future;
+
+import javax.swing.JTextPane;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Document;
 
 import org.scijava.Context;
 import org.scijava.thread.ThreadService;
 import org.scijava.ui.UIService;
+import org.scijava.ui.swing.sdi.SwingSDIUI;
 
 /**
  * A behavioral test and benchmark of {@link SwingConsolePane}.
@@ -60,6 +69,7 @@ public class SwingConsolePaneBenchmark {
 			{ ": {ERR} iteration #", ": {OUT} iteration #" };
 		final String outLabel = streamLabels[1];
 		final String errLabel = streamLabels[0];
+		final int numStreams = streamLabels.length;
 
 		final int initialDelay = 500;
 
@@ -95,6 +105,52 @@ public class SwingConsolePaneBenchmark {
 		final long end = System.currentTimeMillis();
 		System.out.println();
 		System.out.println("Benchmark took " + (end - start) + " ms");
+
+		// Finally, check for completeness of output.
+		// NB: We do this **also on the EDT** so that all output has flushed.
+		final String completenessMessage = "Checking for completeness of output...";
+		System.out.println();
+		System.out.println(completenessMessage);
+		threadService.queue(new Runnable() {
+
+			@Override
+			public void run() {
+				System.out.println();
+				final SwingSDIUI ui =
+					(SwingSDIUI) context.service(UIService.class).getVisibleUIs().get(0);
+				final JTextPane textPane = ui.getConsolePane().getTextPane();
+				final Document doc = textPane.getDocument();
+				try {
+					final String text = doc.getText(0, doc.getLength());
+					final String[] lines = text.split("\n");
+					Arrays.sort(lines);
+
+					int lineIndex = 0;
+					assertEquals("", lines[lineIndex++]);
+					assertEquals("", lines[lineIndex++]);
+					for (int t = 0; t < numThreads; t++) {
+						for (int s = 0; s < numStreams; s++) {
+							for (int i = 0; i < numOperations; i++) {
+								final String expected = str(t, streamLabels[s], i);
+								final String actual = lines[lineIndex++];
+								assertEquals(expected, actual);
+							}
+						}
+					}
+					assertTrue(lines[lineIndex++].startsWith("Benchmark took "));
+					assertEquals(completenessMessage, lines[lineIndex++]);
+					assertEquals("Goodbye cruel world!", lines[lineIndex++]);
+					assertEquals("Hello world!", lines[lineIndex++]);
+					assertEquals(lineIndex, lines.length);
+
+					System.out.println("Success! All output accounted for!");
+				}
+				catch (final BadLocationException exc) {
+					exc.printStackTrace();
+				}
+			}
+		});
+
 	}
 
 	// - Helper methods --
