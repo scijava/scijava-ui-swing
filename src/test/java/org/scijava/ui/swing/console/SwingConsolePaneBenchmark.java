@@ -30,6 +30,8 @@
 
 package org.scijava.ui.swing.console;
 
+import java.util.concurrent.Future;
+
 import org.scijava.Context;
 import org.scijava.thread.ThreadService;
 import org.scijava.ui.UIService;
@@ -48,20 +50,61 @@ public class SwingConsolePaneBenchmark {
 		final Context context = new Context();
 		context.service(UIService.class).showUI();
 
-		System.out.println("Hello!");
+		System.out.print("Hello ");
+		System.err.println("world!");
 
+		final int numThreads = 50;
+		final int numOperations = 20;
+
+		final String[] streamLabels =
+			{ ": {ERR} iteration #", ": {OUT} iteration #" };
+		final String outLabel = streamLabels[1];
+		final String errLabel = streamLabels[0];
+
+		final int initialDelay = 500;
+
+		Thread.sleep(initialDelay);
+
+		final long start = System.currentTimeMillis();
+
+		// emit a bunch of output on multiple threads concurrently
 		final ThreadService threadService = context.service(ThreadService.class);
-		threadService.run(new Runnable() {
+		final Future<?>[] f = new Future<?>[numThreads];
+		for (int t = 0; t < numThreads; t++) {
+			final int tNo = t;
+			f[t] = threadService.run(new Runnable() {
 
-			@Override
-			public void run() {
-				System.out.println("This is a test of the emergency console system.");
-				System.err.println("In a real emergency, your computer would explode.");
-			}
+				@Override
+				public void run() {
+					for (int i = 0; i < numOperations; i++) {
+						System.out.print(str(tNo, outLabel, i) + "\n");
+						System.err.print(str(tNo, errLabel, i) + "\n");
+					}
+				}
+			});
+		}
 
-		}).get();
+		// wait for all output threads to finish
+		for (int t = 0; t < numThreads; t++) {
+			f[t].get();
+		}
 
-		System.err.println("Goodbye!");
+		System.err.print("Goodbye ");
+		System.out.println("cruel world!");
+
+		final long end = System.currentTimeMillis();
+		System.out.println();
+		System.out.println("Benchmark took " + (end - start) + " ms");
+	}
+
+	// - Helper methods --
+
+	private static String str(final int t, final String separator, final int i) {
+		return pad(t) + separator + pad(i);
+	}
+
+	private static String pad(final int n) {
+		return n < 10 ? "0" + n : "" + n;
 	}
 
 }
