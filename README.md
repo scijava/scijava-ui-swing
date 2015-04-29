@@ -1,4 +1,4 @@
-![](http://jenkins.imagej.net/job/SciJava-UI-Swing/lastBuild/badge/icon)
+[![](http://jenkins.imagej.net/job/SciJava-UI-Swing/lastBuild/badge/icon)](http://jenkins.imagej.net/job/SciJava-UI-Swing/)
 
 SciJava Swing UI components
 ---------------------------
