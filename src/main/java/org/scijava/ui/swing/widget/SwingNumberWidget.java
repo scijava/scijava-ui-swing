@@ -52,10 +52,10 @@ import javax.swing.SpinnerNumberModel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import org.scijava.module.ModuleService;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.thread.ThreadService;
-import org.scijava.util.NumberUtils;
 import org.scijava.widget.InputWidget;
 import org.scijava.widget.NumberWidget;
 import org.scijava.widget.WidgetModel;
@@ -72,6 +72,9 @@ public class SwingNumberWidget extends SwingInputWidget<Number> implements
 
 	@Parameter
 	private ThreadService threadService;
+
+	@Parameter
+	private ModuleService moduleService;
 
 	private JScrollBar scrollBar;
 	private JSlider slider;
@@ -123,8 +126,14 @@ public class SwingNumberWidget extends SwingInputWidget<Number> implements
 		// add spinner widget
 		final Class<?> type = model.getItem().getType();
 		if (model.getValue() == null) {
-			final Number defaultValue = NumberUtils.getDefaultValue(min, max, type);
-			model.setValue(defaultValue);
+			final Object defaultValue =
+				moduleService.getDefaultValue(model.getItem());
+			if (!(defaultValue instanceof Number)) {
+				throw new IllegalStateException("Invalid default value type: " +
+					defaultValue.getClass().getName());
+			}
+			final Number defaultNumber = (Number) defaultValue;
+			model.setValue(defaultNumber);
 		}
 		final Number value = (Number) model.getValue();
 		final SpinnerNumberModel spinnerModel =
