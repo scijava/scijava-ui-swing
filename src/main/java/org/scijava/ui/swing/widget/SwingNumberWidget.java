@@ -130,9 +130,6 @@ public class SwingNumberWidget extends SwingInputWidget<Number> implements
 		final SpinnerNumberModel spinnerModel =
 			new SpinnerNumberModelFactory().createModel(value, min, max, stepSize);
 		spinner = new JSpinner(spinnerModel);
-
-		fixSpinnerFocus();
-
 		fixSpinner(type);
 		setToolTip(spinner);
 		getComponent().add(spinner);
@@ -195,57 +192,65 @@ public class SwingNumberWidget extends SwingInputWidget<Number> implements
 		}
 	}
 
+	/** Improves behavior of the {@link JSpinner} widget. */
+	private void fixSpinner(final Class<?> type) {
+		fixSpinnerType(type);
+		fixSpinnerFocus();
+	}
+
 	/**
 	 * Fixes spinners that display {@link BigDecimal} or {@link BigInteger}
 	 * values. This is a HACK to work around the fact that
 	 * {@link DecimalFormat#parse(String, ParsePosition)} uses {@link Double}
 	 * and/or {@link Long} by default, hence losing precision.
 	 */
-	private void fixSpinner(final Class<?> type) {
-		if (BigDecimal.class.isAssignableFrom(type) ||
-			BigInteger.class.isAssignableFrom(type))
+	private void fixSpinnerType(final Class<?> type) {
+		if (!BigDecimal.class.isAssignableFrom(type) &&
+			!BigInteger.class.isAssignableFrom(type))
 		{
-			final JComponent editor = spinner.getEditor();
-			final JSpinner.NumberEditor numberEditor = (JSpinner.NumberEditor) editor;
-			final DecimalFormat decimalFormat = numberEditor.getFormat();
-			decimalFormat.setParseBigDecimal(true);
+			return;
 		}
+		final JComponent editor = spinner.getEditor();
+		final JSpinner.NumberEditor numberEditor = (JSpinner.NumberEditor) editor;
+		final DecimalFormat decimalFormat = numberEditor.getFormat();
+		decimalFormat.setParseBigDecimal(true);
 	}
 
 	/**
-	 * Adapted from <a href=
-	 * "http://stackoverflow.com/q/20971050/1027800"
-	 * >this SO post</a>.
-	 *
-	 * Tries to ensure that the text of a {@link JSpinner} is selected when it
-	 * has focus.
+	 * Tries to ensure that the text of a {@link JSpinner} becomes selected when
+	 * it first receives the focus.
+	 * <p>
+	 * Adapted from <a href="http://stackoverflow.com/q/20971050">this SO
+	 * post</a>.
 	 */
 	private void fixSpinnerFocus() {
 		for (final Component c : spinner.getEditor().getComponents()) {
-			if (JTextField.class.isAssignableFrom(c.getClass())) {
-				c.addFocusListener(new FocusListener() {
+			if (!(c instanceof JTextField)) continue;
+			final JTextField textField = (JTextField) c;
 
-					@Override
-					public void focusGained(final FocusEvent e) {
-						queueSelection();
-					}
+			textField.addFocusListener(new FocusListener() {
 
-					@Override
-					public void focusLost(final FocusEvent e) {
-						queueSelection();
-					}
+				@Override
+				public void focusGained(final FocusEvent e) {
+					queueSelection();
+				}
 
-					private void queueSelection() {
-						threadService.queue(new Runnable() {
-							@Override
-							public void run() {
-								((JTextField) c).selectAll();
-							}
-						});
-					}
+				@Override
+				public void focusLost(final FocusEvent e) {
+					queueSelection();
+				}
 
-				});
-			}
+				private void queueSelection() {
+					threadService.queue(new Runnable() {
+
+						@Override
+						public void run() {
+							textField.selectAll();
+						}
+					});
+				}
+
+			});
 		}
 	}
 
