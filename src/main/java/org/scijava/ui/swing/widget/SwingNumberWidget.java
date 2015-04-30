@@ -31,9 +31,12 @@
 package org.scijava.ui.swing.widget;
 
 import java.awt.Adjustable;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.AdjustmentEvent;
 import java.awt.event.AdjustmentListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.text.DecimalFormat;
@@ -44,11 +47,14 @@ import javax.swing.JPanel;
 import javax.swing.JScrollBar;
 import javax.swing.JSlider;
 import javax.swing.JSpinner;
+import javax.swing.JTextField;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
+import org.scijava.thread.ThreadService;
 import org.scijava.util.NumberUtils;
 import org.scijava.widget.InputWidget;
 import org.scijava.widget.NumberWidget;
@@ -63,6 +69,9 @@ import org.scijava.widget.WidgetModel;
 public class SwingNumberWidget extends SwingInputWidget<Number> implements
 	NumberWidget<JPanel>, AdjustmentListener, ChangeListener
 {
+
+	@Parameter
+	private ThreadService threadService;
 
 	private JScrollBar scrollBar;
 	private JSlider slider;
@@ -121,6 +130,9 @@ public class SwingNumberWidget extends SwingInputWidget<Number> implements
 		final SpinnerNumberModel spinnerModel =
 			new SpinnerNumberModelFactory().createModel(value, min, max, stepSize);
 		spinner = new JSpinner(spinnerModel);
+
+		fixSpinnerFocus();
+
 		fixSpinner(type);
 		setToolTip(spinner);
 		getComponent().add(spinner);
@@ -197,6 +209,43 @@ public class SwingNumberWidget extends SwingInputWidget<Number> implements
 			final JSpinner.NumberEditor numberEditor = (JSpinner.NumberEditor) editor;
 			final DecimalFormat decimalFormat = numberEditor.getFormat();
 			decimalFormat.setParseBigDecimal(true);
+		}
+	}
+
+	/**
+	 * Adapted from <a href=
+	 * "http://stackoverflow.com/q/20971050/1027800"
+	 * >this SO post</a>.
+	 *
+	 * Tries to ensure that the text of a {@link JSpinner} is selected when it
+	 * has focus.
+	 */
+	private void fixSpinnerFocus() {
+		for (final Component c : spinner.getEditor().getComponents()) {
+			if (JTextField.class.isAssignableFrom(c.getClass())) {
+				c.addFocusListener(new FocusListener() {
+
+					@Override
+					public void focusGained(final FocusEvent e) {
+						queueSelection();
+					}
+
+					@Override
+					public void focusLost(final FocusEvent e) {
+						queueSelection();
+					}
+
+					private void queueSelection() {
+						threadService.queue(new Runnable() {
+							@Override
+							public void run() {
+								((JTextField) c).selectAll();
+							}
+						});
+					}
+
+				});
+			}
 		}
 	}
 
