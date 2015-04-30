@@ -135,6 +135,7 @@ public class SwingNumberWidget extends SwingInputWidget<Number> implements
 		getComponent().add(spinner);
 		limitWidth(200);
 		spinner.addChangeListener(this);
+
 		refreshWidget();
 		syncSliders();
 	}
