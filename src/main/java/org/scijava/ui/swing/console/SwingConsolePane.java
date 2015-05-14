@@ -51,7 +51,6 @@ import org.scijava.console.OutputEvent;
 import org.scijava.console.OutputEvent.Source;
 import org.scijava.plugin.Parameter;
 import org.scijava.thread.ThreadService;
-import org.scijava.ui.UIService;
 import org.scijava.ui.console.AbstractConsolePane;
 import org.scijava.ui.console.ConsolePane;
 import org.scijava.ui.swing.StaticSwingUtils;
@@ -93,31 +92,46 @@ public class SwingConsolePane extends AbstractConsolePane<JPanel> {
 		this.window = window;
 	}
 
+	public JTextPane getTextPane() {
+		if (consolePanel == null) initConsolePanel();
+		return textPane;
+	}
+
+	public JScrollPane getScrollPane() {
+		if (consolePanel == null) initConsolePanel();
+		return scrollPane;
+	}
+
 	// -- ConsolePane methods --
 
 	@Override
 	public void append(final OutputEvent event) {
 		if (consolePanel == null) initConsolePanel();
-		final boolean atBottom = StaticSwingUtils.isScrolledToBottom(scrollPane);
-		try {
-			doc.insertString(doc.getLength(), event.getOutput(), getStyle(event));
-		}
-		catch (final BadLocationException exc) {
-			throw new RuntimeException(exc);
-		}
-		if (atBottom) StaticSwingUtils.scrollToBottom(scrollPane);
-	}
-
-	@Override
-	public void show() {
-		if (window == null) return;
 		threadService.queue(new Runnable() {
 
 			@Override
 			public void run() {
-				if (!window.isVisible()) {
-					window.setVisible(true);
+				final boolean atBottom =
+					StaticSwingUtils.isScrolledToBottom(scrollPane);
+				try {
+					doc.insertString(doc.getLength(), event.getOutput(), getStyle(event));
 				}
+				catch (final BadLocationException exc) {
+					throw new RuntimeException(exc);
+				}
+				if (atBottom) StaticSwingUtils.scrollToBottom(scrollPane);
+			}
+		});
+	}
+
+	@Override
+	public void show() {
+		if (window == null || window.isVisible()) return;
+		threadService.queue(new Runnable() {
+
+			@Override
+			public void run() {
+				window.setVisible(true);
 			}
 		});
 	}
@@ -187,29 +201,6 @@ public class SwingConsolePane extends AbstractConsolePane<JPanel> {
 		final boolean contextual = event.isContextual();
 		if (stderr) return contextual ? stderrLocal : stderrGlobal;
 		return contextual ? stdoutLocal : stdoutGlobal;
-	}
-
-	// -- Main method --
-
-	/** A manual test drive of the Swing UI's console pane. */
-	public static void main(final String[] args) throws Exception {
-		final Context context = new Context();
-		context.service(UIService.class).showUI();
-
-		System.out.println("Hello!");
-
-		final ThreadService threadService = context.service(ThreadService.class);
-		threadService.run(new Runnable() {
-
-			@Override
-			public void run() {
-				System.out.println("This is a test of the emergency console system.");
-				System.err.println("In a real emergency, your computer would explode.");
-			}
-
-		}).get();
-
-		System.err.println("Goodbye!");
 	}
 
 }
