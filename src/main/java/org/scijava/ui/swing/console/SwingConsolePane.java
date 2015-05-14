@@ -35,7 +35,6 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -82,13 +81,6 @@ public class SwingConsolePane extends AbstractConsolePane<JPanel> {
 	 */
 	private Component window;
 
-	/** Output queue, to avoid excessive queuing to the EDT. */
-	private ConcurrentLinkedQueue<OutputEvent> outputQueue =
-		new ConcurrentLinkedQueue<OutputEvent>();
-
-	/** Flag indicating that the EDT is currently flushing the output. */
-	private boolean outputFlushing;
-
 	public SwingConsolePane(final Context context) {
 		super(context);
 	}
@@ -115,29 +107,19 @@ public class SwingConsolePane extends AbstractConsolePane<JPanel> {
 	@Override
 	public void append(final OutputEvent event) {
 		if (consolePanel == null) initConsolePanel();
-		outputQueue.add(event);
-		if (outputFlushing) return;
-		outputFlushing = true;
-
 		threadService.queue(new Runnable() {
 
 			@Override
 			public void run() {
-				while (true) {
-					outputFlushing = !outputQueue.isEmpty();
-					final OutputEvent item = outputQueue.poll();
-					if (item == null) break;
-
-					final boolean atBottom =
-						StaticSwingUtils.isScrolledToBottom(scrollPane);
-					try {
-						doc.insertString(doc.getLength(), item.getOutput(), getStyle(item));
-					}
-					catch (final BadLocationException exc) {
-						throw new RuntimeException(exc);
-					}
-					if (atBottom) StaticSwingUtils.scrollToBottom(scrollPane);
+				final boolean atBottom =
+					StaticSwingUtils.isScrolledToBottom(scrollPane);
+				try {
+					doc.insertString(doc.getLength(), event.getOutput(), getStyle(event));
 				}
+				catch (final BadLocationException exc) {
+					throw new RuntimeException(exc);
+				}
+				if (atBottom) StaticSwingUtils.scrollToBottom(scrollPane);
 			}
 		});
 	}
