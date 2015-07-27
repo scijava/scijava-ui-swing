@@ -103,6 +103,11 @@ public class SwingConsolePane extends AbstractConsolePane<JPanel> {
 		return scrollPane;
 	}
 
+	public void clear() {
+		if (consolePanel == null) initConsolePanel();
+		textPane.setText("");
+	}
+
 	// -- ConsolePane methods --
 
 	@Override
