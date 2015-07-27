@@ -35,6 +35,7 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.FontMetrics;
 
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -179,6 +180,14 @@ public class SwingConsolePane extends AbstractConsolePane<JPanel> {
 
 		scrollPane = new JScrollPane(textPanel);
 		scrollPane.setPreferredSize(new Dimension(600, 600));
+
+		// Make the scroll bars move at a reasonable pace.
+		final FontMetrics fm = scrollPane.getFontMetrics(scrollPane.getFont());
+		final int charWidth = fm.charWidth('a');
+		final int lineHeight = fm.getHeight();
+		scrollPane.getHorizontalScrollBar().setUnitIncrement(charWidth);
+		scrollPane.getVerticalScrollBar().setUnitIncrement(2 * lineHeight);
+
 		panel.add(scrollPane);
 
 		consolePanel = panel;
