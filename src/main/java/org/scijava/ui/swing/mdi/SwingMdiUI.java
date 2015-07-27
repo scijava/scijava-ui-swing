@@ -124,6 +124,7 @@ public class SwingMdiUI extends AbstractSwingUI {
 		desktopPane.add(frame);
 		frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 		frame.setContentPane(getConsolePane().getComponent());
+		frame.setJMenuBar(createConsoleMenu());
 		frame.pack();
 		getConsolePane().setWindow(frame);
 	}

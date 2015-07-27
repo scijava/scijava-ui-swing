@@ -115,6 +115,7 @@ public class SwingSDIUI extends AbstractSwingUI {
 		final JFrame frame = new JFrame("Console");
 		frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 		frame.setContentPane(getConsolePane().getComponent());
+		frame.setJMenuBar(createConsoleMenu());
 		frame.pack();
 		getConsolePane().setWindow(frame);
 	}
