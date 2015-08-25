@@ -61,7 +61,7 @@ public class SwingMessageWidget extends SwingInputWidget<String> implements
 	@Override
 	public boolean isLabeled() {
 		final String l = get().getItem().getLabel();
-		return l == null || l.isEmpty();
+		return l != null && !l.isEmpty();
 	}
 
 	@Override
