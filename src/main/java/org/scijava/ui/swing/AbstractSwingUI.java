@@ -59,6 +59,7 @@ import org.scijava.ui.awt.AWTClipboard;
 import org.scijava.ui.awt.AWTDropTargetEventDispatcher;
 import org.scijava.ui.awt.AWTInputEventDispatcher;
 import org.scijava.ui.awt.AWTWindowEventDispatcher;
+import org.scijava.ui.console.ConsolePane;
 import org.scijava.ui.swing.console.SwingConsolePane;
 import org.scijava.ui.swing.menu.SwingJMenuBarCreator;
 import org.scijava.ui.swing.menu.SwingJPopupMenuCreator;
@@ -178,7 +179,10 @@ public abstract class AbstractSwingUI extends AbstractUserInterface implements
 
 		toolBar = new SwingToolBar(getContext());
 		statusBar = new SwingStatusBar(getContext());
-		consolePane = new SwingConsolePane(getContext());
+
+		if (!Boolean.getBoolean(ConsolePane.NO_CONSOLE_PROPERTY)) {
+			consolePane = new SwingConsolePane(getContext());
+		}
 
 		systemClipboard = new AWTClipboard();
 
