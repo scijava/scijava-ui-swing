@@ -73,6 +73,11 @@
 		</repository>
 	</repositories>
 
+	<properties>
+		<scijava-common.version>2.47.1-SNAPSHOT</scijava-common.version>
+		<enforcer.skip>true</enforcer.skip>
+	</properties>
+
 	<dependencies>
 		<!-- SciJava dependencies -->
 		<dependency>
