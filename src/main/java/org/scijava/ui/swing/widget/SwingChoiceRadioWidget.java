@@ -104,8 +104,8 @@ public class SwingChoiceRadioWidget extends SwingInputWidget<String> implements
 
 	@Override
 	public boolean supports(final WidgetModel model) {
-		return super.supports(model) && model.isText() &&
-			model.isMultipleChoice() && isRadioButtonStyle(model);
+		return super.supports(model) && model.isMultipleChoice() &&
+			isRadioButtonStyle(model);
 	}
 
 	// -- Helper methods --

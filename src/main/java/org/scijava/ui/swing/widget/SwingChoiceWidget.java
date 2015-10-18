@@ -91,7 +91,7 @@ public class SwingChoiceWidget extends SwingInputWidget<String> implements
 
 	@Override
 	public boolean supports(final WidgetModel model) {
-		return super.supports(model) && model.isText() && model.isMultipleChoice();
+		return super.supports(model) && model.isMultipleChoice();
 	}
 
 	// -- AbstractUIInputWidget methods ---
