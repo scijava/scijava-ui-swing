@@ -15,7 +15,6 @@
 	<name>SciJava UI: Swing</name>
 	<description>SciJava user interface components for Java Swing.</description>
 	<inceptionYear>2010</inceptionYear>
-
 	<licenses>
 		<license>
 			<name>Simplified BSD License</name>
@@ -55,12 +54,10 @@
 		<tag>HEAD</tag>
 		<url>https://github.com/scijava/scijava-ui-swing</url>
 	</scm>
-
 	<issueManagement>
 		<system>GitHub Issues</system>
 		<url>http://github.com/scijava/scijava-ui-swing/issues</url>
 	</issueManagement>
-
 	<ciManagement>
 		<system>Jenkins</system>
 		<url>http://jenkins.imagej.net/job/SciJava-UI-Swing/</url>
@@ -136,5 +133,4 @@ Wisconsin-Madison.</organizationName>
 			</plugin>
 		</plugins>
 	</build>
-
 </project>
