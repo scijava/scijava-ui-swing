@@ -125,16 +125,6 @@ public class SwingNumberWidget extends SwingInputWidget<Number> implements
 
 		// add spinner widget
 		final Class<?> type = model.getItem().getType();
-		if (model.getValue() == null) {
-			final Object defaultValue =
-				moduleService.getDefaultValue(model.getItem());
-			if (!(defaultValue instanceof Number)) {
-				throw new IllegalStateException("Invalid default value type: " +
-					defaultValue.getClass().getName());
-			}
-			final Number defaultNumber = (Number) defaultValue;
-			model.setValue(defaultNumber);
-		}
 		final Number value = (Number) model.getValue();
 		final SpinnerNumberModel spinnerModel =
 			new SpinnerNumberModelFactory().createModel(value, min, max, stepSize);
