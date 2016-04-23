@@ -147,7 +147,7 @@ public abstract class PromptPane implements UIComponent<JTextArea> {
 
 	private void walk(boolean forward) {
 		textArea.setText(repl.getInterpreter().walkHistory(textArea.getText(),
-			forward));
+			forward).trim());
 	}
 
 	private synchronized boolean execute() {
