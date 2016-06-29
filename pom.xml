@@ -10,7 +10,7 @@
 	</parent>
 
 	<artifactId>scijava-ui-swing</artifactId>
-	<version>0.8.1-SNAPSHOT</version>
+	<version>0.9.0-SNAPSHOT</version>
 
 	<name>SciJava UI: Swing</name>
 	<description>SciJava user interface components for Java Swing.</description>
@@ -48,10 +48,6 @@
 			<name>Johannes Schindelin</name>
 			<url>http://imagej.net/User:Schindelin</url>
 			<properties><id>dscho</id></properties>
-		</contributor>
-		<contributor>
-			<name>Ulrik Günther</name>
-			<properties><id>skalarproduktraum</id></properties>
 		</contributor>
 		<contributor>
 			<name>Stephan Saalfeld</name>
