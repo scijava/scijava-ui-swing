@@ -78,16 +78,8 @@ public class OptionsLookAndFeel extends OptionsPlugin {
 
 	// -- OptionsLookAndFeel methods --
 
-	public UserInterface getUI() {
-		return ui;
-	}
-
 	public String getLookAndFeel() {
 		return lookAndFeel;
-	}
-
-	public void setUI(final UserInterface ui) {
-		this.ui = ui;
 	}
 
 	public void setLookAndFeel(final String lookAndFeel) {
@@ -155,4 +147,15 @@ public class OptionsLookAndFeel extends OptionsPlugin {
 		lookAndFeelItem.setChoices(lookAndFeelChoices);
 	}
 
+	// -- Deprecated methods --
+
+	@Deprecated
+	public UserInterface getUI() {
+		return ui;
+	}
+
+	@Deprecated
+	public void setUI(final UserInterface ui) {
+		this.ui = ui;
+	}
 }
