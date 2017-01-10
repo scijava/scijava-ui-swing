@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.scijava</groupId>
 		<artifactId>pom-scijava</artifactId>
-		<version>10.1.0</version>
+		<version>12.0.0</version>
 		<relativePath />
 	</parent>
 
@@ -14,7 +14,12 @@
 
 	<name>SciJava UI: Swing</name>
 	<description>SciJava user interface components for Java Swing.</description>
+	<url>https://github.com/scijava/scijava-ui-swing</url>
 	<inceptionYear>2010</inceptionYear>
+	<organization>
+		<name>SciJava</name>
+		<url>http://www.scijava.org/</url>
+	</organization>
 	<licenses>
 		<license>
 			<name>Simplified BSD License</name>
@@ -56,6 +61,16 @@
 		</contributor>
 	</contributors>
 
+	<mailingLists>
+		<mailingList>
+			<name>SciJava</name>
+			<subscribe>https://groups.google.com/group/scijava</subscribe>
+			<unsubscribe>https://groups.google.com/group/scijava</unsubscribe>
+			<post>scijava@googlegroups.com</post>
+			<archive>https://groups.google.com/group/scijava</archive>
+		</mailingList>
+	</mailingLists>
+
 	<scm>
 		<connection>scm:git:git://github.com/scijava/scijava-ui-swing</connection>
 		<developerConnection>scm:git:git@github.com:scijava/scijava-ui-swing</developerConnection>
@@ -70,6 +85,14 @@
 		<system>Jenkins</system>
 		<url>http://jenkins.imagej.net/job/SciJava-UI-Swing/</url>
 	</ciManagement>
+
+	<properties>
+		<package-name>org.scijava.ui.swing</package-name>
+		<license.licenseName>bsd_2</license.licenseName>
+		<license.copyrightOwners>Board of Regents of the University of
+			Wisconsin-Madison.</license.copyrightOwners>
+		<license.projectName>SciJava UI components for Java Swing.</license.projectName>
+	</properties>
 
 	<repositories>
 		<repository>
@@ -116,29 +139,4 @@
 			<artifactId>junit</artifactId>
 		</dependency>
 	</dependencies>
-
-	<build>
-		<plugins>
-			<plugin>
-				<artifactId>maven-jar-plugin</artifactId>
-				<configuration>
-					<archive>
-						<manifest>
-							<packageName>org.scijava.ui.swing</packageName>
-						</manifest>
-					</archive>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>license-maven-plugin</artifactId>
-				<configuration>
-					<licenseName>bsd_2</licenseName>
-					<organizationName>Board of Regents of the University of
-Wisconsin-Madison.</organizationName>
-					<projectName>SciJava UI components for Java Swing.</projectName>
-				</configuration>
-			</plugin>
-		</plugins>
-	</build>
 </project>
