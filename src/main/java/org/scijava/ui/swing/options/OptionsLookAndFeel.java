@@ -141,7 +141,7 @@ public class OptionsLookAndFeel extends OptionsPlugin {
 		final String lafClass = UIManager.getLookAndFeel().getClass().getName();
 
 		final LookAndFeelInfo[] lookAndFeels = UIManager.getInstalledLookAndFeels();
-		final ArrayList<String> lookAndFeelChoices = new ArrayList<String>();
+		final ArrayList<String> lookAndFeelChoices = new ArrayList<>();
 		for (final LookAndFeelInfo lafInfo : lookAndFeels) {
 			final String lafName = lafInfo.getName();
 			lookAndFeelChoices.add(lafInfo.getName());
