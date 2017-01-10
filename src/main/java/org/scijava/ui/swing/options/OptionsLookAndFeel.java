@@ -101,12 +101,7 @@ public class OptionsLookAndFeel extends OptionsPlugin {
 
 						@Override
 						public void run() {
-							// FIXME: Get all windows from UIService rather than just app.
-							final UserInterface ui = uiService.getDefaultUI();
-							final SwingApplicationFrame swingAppFrame =
-								(SwingApplicationFrame) ui.getApplicationFrame();
-							SwingUtilities.updateComponentTreeUI(swingAppFrame);
-							swingAppFrame.pack();
+							refreshSwingComponents();
 						}
 					});
 				}
@@ -147,6 +142,18 @@ public class OptionsLookAndFeel extends OptionsPlugin {
 		final MutableModuleItem<String> lookAndFeelItem =
 			getInfo().getMutableInput(LOOK_AND_FEEL, String.class);
 		lookAndFeelItem.setChoices(lookAndFeelChoices);
+	}
+
+	// -- Helper methods --
+
+	/** Tells all known Swing components to change to the new Look &amp; Feel. */
+	private void refreshSwingComponents() {
+		// FIXME: Get all windows from UIService rather than just app.
+		final UserInterface ui = uiService.getDefaultUI();
+		final SwingApplicationFrame swingAppFrame =
+				(SwingApplicationFrame) ui.getApplicationFrame();
+		SwingUtilities.updateComponentTreeUI(swingAppFrame);
+		swingAppFrame.pack();
 	}
 
 	// -- Deprecated methods --
