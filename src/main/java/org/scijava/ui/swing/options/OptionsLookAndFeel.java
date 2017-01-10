@@ -45,6 +45,7 @@ import org.scijava.options.OptionsPlugin;
 import org.scijava.plugin.Menu;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
+import org.scijava.ui.UIService;
 import org.scijava.ui.UserInterface;
 import org.scijava.ui.swing.SwingApplicationFrame;
 
@@ -67,7 +68,7 @@ public class OptionsLookAndFeel extends OptionsPlugin {
 	// -- Parameters --
 
 	@Parameter
-	private UserInterface ui;
+	private UIService uiService;
 
 	@Parameter
 	private LogService log;
@@ -101,6 +102,7 @@ public class OptionsLookAndFeel extends OptionsPlugin {
 						@Override
 						public void run() {
 							// FIXME: Get all windows from UIService rather than just app.
+							final UserInterface ui = uiService.getDefaultUI();
 							final SwingApplicationFrame swingAppFrame =
 								(SwingApplicationFrame) ui.getApplicationFrame();
 							SwingUtilities.updateComponentTreeUI(swingAppFrame);
@@ -151,11 +153,11 @@ public class OptionsLookAndFeel extends OptionsPlugin {
 
 	@Deprecated
 	public UserInterface getUI() {
-		return ui;
+		return uiService.getDefaultUI();
 	}
 
 	@Deprecated
-	public void setUI(final UserInterface ui) {
-		this.ui = ui;
+	public void setUI(@SuppressWarnings("unused") final UserInterface ui) {
+		throw new UnsupportedOperationException();
 	}
 }
