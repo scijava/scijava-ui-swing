@@ -30,14 +30,20 @@
 
 package org.scijava.ui.swing.options;
 
+import java.awt.Component;
 import java.awt.EventQueue;
+import java.awt.Window;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
 import javax.swing.UnsupportedLookAndFeelException;
 
+import org.scijava.display.Display;
+import org.scijava.display.DisplayService;
 import org.scijava.log.LogService;
 import org.scijava.menu.MenuConstants;
 import org.scijava.module.MutableModuleItem;
@@ -47,7 +53,8 @@ import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.ui.UIService;
 import org.scijava.ui.UserInterface;
-import org.scijava.ui.swing.SwingApplicationFrame;
+import org.scijava.ui.viewer.DisplayViewer;
+import org.scijava.widget.UIComponent;
 
 /**
  * Runs the Edit::Options::Look and Feel dialog.
@@ -69,6 +76,9 @@ public class OptionsLookAndFeel extends OptionsPlugin {
 
 	@Parameter
 	private UIService uiService;
+
+	@Parameter
+	private DisplayService displayService;
 
 	@Parameter
 	private LogService log;
@@ -148,12 +158,47 @@ public class OptionsLookAndFeel extends OptionsPlugin {
 
 	/** Tells all known Swing components to change to the new Look &amp; Feel. */
 	private void refreshSwingComponents() {
-		// FIXME: Get all windows from UIService rather than just app.
-		final UserInterface ui = uiService.getDefaultUI();
-		final SwingApplicationFrame swingAppFrame =
-				(SwingApplicationFrame) ui.getApplicationFrame();
-		SwingUtilities.updateComponentTreeUI(swingAppFrame);
-		swingAppFrame.pack();
+		// TODO: Change this hacky logic to call a clean UIService API
+		// for window retrieval. But does not exist as of this writing.
+
+		final Set<Component> components = new HashSet<>();
+
+		// add Swing UI components from visible UIs
+		for (final UserInterface ui : uiService.getVisibleUIs()) {
+			findComponents(components, ui.getApplicationFrame());
+			findComponents(components, ui.getConsolePane());
+		}
+
+		// add Swing UI components from visible displays
+		for (final Display<?> d : displayService.getDisplays()) {
+			final DisplayViewer<?> viewer = uiService.getDisplayViewer(d);
+			if (viewer == null) continue;
+			findComponents(components, viewer.getWindow());
+		}
+
+		// refresh all discovered components
+		for (final Component c : components) {
+			SwingUtilities.updateComponentTreeUI(c);
+			if (c instanceof Window) ((Window) c).pack();
+		}
+	}
+
+	/**
+	 * Extracts Swing components from the given object, adding them to
+	 * the specified set.
+	 */
+	private void findComponents(final Set<Component> set, final Object o) {
+		if (o == null) return;
+		if (o instanceof UIComponent) {
+			final UIComponent<?> c = (UIComponent<?>) o;
+			findComponents(set, c.getComponent());
+		}
+		if (o instanceof Window) set.add((Window) o);
+		else if (o instanceof Component) {
+			final Component c = (Component) o;
+			final Window w = SwingUtilities.getWindowAncestor(c);
+			set.add(w == null ? c : w);
+		}
 	}
 
 	// -- Deprecated methods --
