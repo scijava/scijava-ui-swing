@@ -90,7 +90,7 @@
 		<package-name>org.scijava.ui.swing</package-name>
 		<license.licenseName>bsd_2</license.licenseName>
 		<license.copyrightOwners>Board of Regents of the University of
-			Wisconsin-Madison.</license.copyrightOwners>
+Wisconsin-Madison.</license.copyrightOwners>
 		<license.projectName>SciJava UI components for Java Swing.</license.projectName>
 	</properties>
 
