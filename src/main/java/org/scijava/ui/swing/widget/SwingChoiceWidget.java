@@ -55,7 +55,7 @@ public class SwingChoiceWidget extends SwingInputWidget<String> implements
 
 	public static final double PRIORITY = Priority.NORMAL_PRIORITY;
 
-	private JComboBox comboBox;
+	private JComboBox<String> comboBox;
 
 	// -- ActionListener methods --
 
@@ -79,7 +79,7 @@ public class SwingChoiceWidget extends SwingInputWidget<String> implements
 
 		final String[] items = model.getChoices();
 
-		comboBox = new JComboBox(items);
+		comboBox = new JComboBox<>(items);
 		setToolTip(comboBox);
 		getComponent().add(comboBox);
 		comboBox.addActionListener(this);
