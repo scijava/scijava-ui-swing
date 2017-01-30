@@ -52,11 +52,11 @@ import org.scijava.widget.WidgetModel;
  * @author Curtis Rueden
  */
 @Plugin(type = InputWidget.class, priority = SwingChoiceWidget.PRIORITY + 1)
-public class SwingChoiceRadioWidget extends SwingInputWidget<String> implements
+public class SwingChoiceRadioWidget extends SwingInputWidget<Object> implements
 	ActionListener, ChoiceWidget<JPanel>
 {
 
-	private List<JRadioButton> radioButtons;
+	private List<DataJRadioButton> radioButtons;
 
 	// -- ActionListener methods --
 
@@ -68,9 +68,9 @@ public class SwingChoiceRadioWidget extends SwingInputWidget<String> implements
 	// -- InputWidget methods --
 
 	@Override
-	public String getValue() {
-		final JRadioButton selectedButton = getSelectedButton();
-		return selectedButton == null ? null : selectedButton.getText();
+	public Object getValue() {
+		final DataJRadioButton selectedButton = getSelectedButton();
+		return selectedButton == null ? null : selectedButton.getData();
 	}
 
 	// -- WrapperPlugin methods --
@@ -79,15 +79,15 @@ public class SwingChoiceRadioWidget extends SwingInputWidget<String> implements
 	public void set(final WidgetModel model) {
 		super.set(model);
 
-		final String[] items = model.getChoices();
+		final List<?> items = model.getItem().getChoices();
 
 		final ButtonGroup buttonGroup = new ButtonGroup();
 		final JPanel buttonPanel = new JPanel();
 		buttonPanel.setLayout(new BoxLayout(buttonPanel, getBoxAxis(model)));
-		radioButtons = new ArrayList<JRadioButton>(items.length);
+		radioButtons = new ArrayList<>(items.size());
 
-		for (final String item : items) {
-			final JRadioButton radioButton = new JRadioButton(item);
+		for (final Object item : items) {
+			final DataJRadioButton radioButton = new DataJRadioButton(item);
 			setToolTip(radioButton);
 			radioButton.addActionListener(this);
 
@@ -126,16 +126,16 @@ public class SwingChoiceRadioWidget extends SwingInputWidget<String> implements
 			model.getItem().getWidgetStyle());
 	}
 
-	private JRadioButton getSelectedButton() {
-		for (final JRadioButton radioButton : radioButtons) {
+	private DataJRadioButton getSelectedButton() {
+		for (final DataJRadioButton radioButton : radioButtons) {
 			if (radioButton.isSelected()) return radioButton;
 		}
 		return null;
 	}
 
-	private JRadioButton getButton(final Object value) {
-		for (final JRadioButton radioButton : radioButtons) {
-			if (radioButton.getText().equals(value)) return radioButton;
+	private DataJRadioButton getButton(final Object value) {
+		for (final DataJRadioButton radioButton : radioButtons) {
+			if (radioButton.getData() == value) return radioButton;
 		}
 		return null;
 	}
@@ -145,8 +145,29 @@ public class SwingChoiceRadioWidget extends SwingInputWidget<String> implements
 	@Override
 	public void doRefresh() {
 		final Object value = get().getValue();
-		final JRadioButton radioButton = getButton(value);
+		final DataJRadioButton radioButton = getButton(value);
 		if (radioButton.isSelected()) return; // no change
 		radioButton.setSelected(true);
+	}
+	
+	// -- Helper classes --
+
+	/** A {@link JRadioButton} with a backing data object. */
+	private class DataJRadioButton extends JRadioButton {
+
+		private Object data;
+
+		private DataJRadioButton(final Object data) {
+			this(data, data.toString());
+		}
+
+		private DataJRadioButton(final Object data, final String text) {
+			super(text);
+			this.data = data;
+		}
+
+		public Object getData() {
+			return data;
+		}
 	}
 }

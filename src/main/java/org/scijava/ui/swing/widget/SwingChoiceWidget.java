@@ -32,6 +32,7 @@ package org.scijava.ui.swing.widget;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.List;
 
 import javax.swing.JComboBox;
 import javax.swing.JPanel;
@@ -49,13 +50,13 @@ import org.scijava.widget.WidgetModel;
  * @author Curtis Rueden
  */
 @Plugin(type = InputWidget.class, priority = SwingChoiceWidget.PRIORITY)
-public class SwingChoiceWidget extends SwingInputWidget<String> implements
+public class SwingChoiceWidget extends SwingInputWidget<Object> implements
 	ActionListener, ChoiceWidget<JPanel>
 {
 
 	public static final double PRIORITY = Priority.NORMAL_PRIORITY;
 
-	private JComboBox<String> comboBox;
+	private JComboBox<Object> comboBox;
 
 	// -- ActionListener methods --
 
@@ -77,9 +78,9 @@ public class SwingChoiceWidget extends SwingInputWidget<String> implements
 	public void set(final WidgetModel model) {
 		super.set(model);
 
-		final String[] items = model.getChoices();
+		final List<?> items = model.getItem().getChoices();
 
-		comboBox = new JComboBox<>(items);
+		comboBox = new JComboBox<>(items.toArray());
 		setToolTip(comboBox);
 		getComponent().add(comboBox);
 		comboBox.addActionListener(this);
