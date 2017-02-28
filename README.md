@@ -1,4 +1,4 @@
-[![](http://jenkins.imagej.net/job/SciJava-UI-Swing/lastBuild/badge/icon)](http://jenkins.imagej.net/job/SciJava-UI-Swing/)
+[![](https://travis-ci.org/scijava/scijava-ui-swing.svg?branch=master)](https://travis-ci.org/scijava/scijava-ui-swing)
 
 SciJava Swing UI components
 ---------------------------

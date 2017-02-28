@@ -82,8 +82,8 @@
 		<url>http://github.com/scijava/scijava-ui-swing/issues</url>
 	</issueManagement>
 	<ciManagement>
-		<system>Jenkins</system>
-		<url>http://jenkins.imagej.net/job/SciJava-UI-Swing/</url>
+		<system>Travis CI</system>
+		<url>https://travis-ci.org/scijava/scijava-ui-swing</url>
 	</ciManagement>
 
 	<properties>
