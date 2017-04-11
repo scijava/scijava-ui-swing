@@ -51,7 +51,7 @@ public class SwingObjectWidget extends SwingInputWidget<Object> implements
 	ActionListener, ObjectWidget<JPanel>
 {
 
-	private JComboBox comboBox;
+	private JComboBox<Object> comboBox;
 
 	// -- ActionListener methods --
 
@@ -73,7 +73,7 @@ public class SwingObjectWidget extends SwingInputWidget<Object> implements
 	public void set(final WidgetModel model) {
 		super.set(model);
 
-		comboBox = new JComboBox(model.getObjectPool().toArray());
+		comboBox = new JComboBox<>(model.getObjectPool().toArray());
 		setToolTip(comboBox);
 		getComponent().add(comboBox);
 		comboBox.addActionListener(this);

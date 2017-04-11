@@ -84,7 +84,7 @@ public class SwingChoiceRadioWidget extends SwingInputWidget<String> implements
 		final ButtonGroup buttonGroup = new ButtonGroup();
 		final JPanel buttonPanel = new JPanel();
 		buttonPanel.setLayout(new BoxLayout(buttonPanel, getBoxAxis(model)));
-		radioButtons = new ArrayList<JRadioButton>(items.length);
+		radioButtons = new ArrayList<>(items.length);
 
 		for (final String item : items) {
 			final JRadioButton radioButton = new JRadioButton(item);
