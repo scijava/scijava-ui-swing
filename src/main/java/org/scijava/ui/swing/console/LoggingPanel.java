@@ -31,10 +31,12 @@
 package org.scijava.ui.swing.console;
 
 import java.awt.*;
+import java.awt.event.ActionEvent;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import javax.swing.*;
+import javax.swing.plaf.basic.BasicArrowButton;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.MutableAttributeSet;
 import javax.swing.text.SimpleAttributeSet;
@@ -76,6 +78,8 @@ public class LoggingPanel extends JPanel implements LogListener
 		new TextFilterField(" Text Search (Alt-F)");
 	private final ItemTextPane textArea;
 
+	private final JPanel textFilterPanel = new JPanel();
+
 	private final LogFormatter logFormatter = new LogFormatter();
 
 	private LogRecorder recorder;
@@ -101,6 +105,18 @@ public class LoggingPanel extends JPanel implements LogListener
 		recorder.addObservers(textArea::update);
 	}
 
+	public void setTextFilterVisible(boolean visible) {
+		textFilterPanel.setVisible(visible);
+	}
+
+	public void copySelectionToClipboard() {
+		textArea.copySelectionToClipboard();
+	}
+
+	public void focusTextFilter() {
+		textFilter.getComponent().requestFocus();
+	}
+
 	public void clear() {
 		recorder.clear();
 		updateFilter();
@@ -118,11 +134,63 @@ public class LoggingPanel extends JPanel implements LogListener
 	private void initGui() {
 		textFilter.setChangeListener(this::updateFilter);
 
+		JPopupMenu menu = initMenu();
+
+		JButton menuButton = new BasicArrowButton(BasicArrowButton.SOUTH);
+		menuButton.addActionListener(a ->
+			menu.show(menuButton, 0, menuButton.getHeight()));
+
+		textFilterPanel.setLayout(new MigLayout("insets 0", "[][grow]", "[]"));
+		textFilterPanel.add(menuButton);
+		textFilterPanel.add(textFilter.getComponent(), "grow");
+
+		textArea.setPopupMenu(menu);
 		textArea.getJComponent().setPreferredSize(new Dimension(200, 100));
 
 		this.setLayout(new MigLayout("insets 0", "[grow]", "[][grow]"));
-		this.add(textFilter.getComponent(), "grow, wrap");
+		this.add(textFilterPanel, "grow, wrap");
 		this.add(textArea.getJComponent(), "grow");
+
+		registerKeyStroke("alt F", "focusTextFilter", this::focusTextFilter);
+	}
+
+	private void registerKeyStroke(String keyStroke, String id, final Runnable action) {
+		getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke
+			.getKeyStroke(keyStroke), id);
+		getActionMap().put(id, new AbstractAction() {
+
+			@Override
+			public void actionPerformed(ActionEvent actionEvent) {
+				action.run();
+			}
+		});
+	}
+
+	private JPopupMenu initMenu() {
+		JPopupMenu menu = new JPopupMenu();
+		menu.add(newMenuItem("Copy", "control C",
+			this::copySelectionToClipboard));
+		registerKeyStroke("control C", "copyToClipBoard",
+			this::copySelectionToClipboard);
+		menu.add(newMenuItem("Clear", "alt C",
+			this::clear));
+		registerKeyStroke("alt C", "clearLoggingPanel",
+			this::clear);
+		return menu;
+	}
+
+	static private JMenuItem newMenuItem(String text, String keyStroke,
+		Runnable runnable)
+	{
+		JMenuItem item = newMenuItem(text, runnable);
+		item.setAccelerator(KeyStroke.getKeyStroke(keyStroke));
+		return item;
+	}
+
+	static private JMenuItem newMenuItem(String text, Runnable runnable) {
+		JMenuItem item = new JMenuItem(text);
+		item.addActionListener(actionEvent -> runnable.run());
+		return item;
 	}
 
 	private void updateFilter() {
