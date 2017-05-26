@@ -32,6 +32,11 @@ package org.scijava.ui.swing.console;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.util.Collections;
+import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
@@ -50,6 +55,7 @@ import org.scijava.log.LogLevel;
 import org.scijava.log.LogListener;
 import org.scijava.log.LogMessage;
 import org.scijava.log.LogService;
+import org.scijava.log.LogSource;
 import org.scijava.log.Logger;
 import org.scijava.thread.ThreadService;
 
@@ -76,10 +82,16 @@ public class LoggingPanel extends JPanel implements LogListener
 
 	private final TextFilterField textFilter =
 		new TextFilterField(" Text Search (Alt-F)");
+	private final LogSourcesPanel sourcesPanel = initSourcesPanel();
+
 	private final ItemTextPane textArea;
 
 	private final JPanel textFilterPanel = new JPanel();
+	private final JSplitPane splitPane =
+		new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
 
+	private final Set<LogSource> sources = Collections.newSetFromMap(
+		new ConcurrentHashMap<>());
 	private final LogFormatter logFormatter = new LogFormatter();
 
 	private LogRecorder recorder;
@@ -105,6 +117,23 @@ public class LoggingPanel extends JPanel implements LogListener
 		recorder.addObservers(textArea::update);
 	}
 
+	public void toggleSourcesPanel() {
+		boolean isVisible = splitPane.getDividerLocation() > 10;
+		setSourcesPanelVisible(!isVisible);
+	}
+
+	public void setSourcesPanelVisible(boolean visible) {
+		if (visible) {
+			reloadSources();
+			splitPane.setResizeWeight(0.2);
+			splitPane.resetToPreferredSizes();
+		}
+		else {
+			splitPane.setResizeWeight(0.0);
+			splitPane.setDividerLocation(0);
+		}
+	}
+
 	public void setTextFilterVisible(boolean visible) {
 		textFilterPanel.setVisible(visible);
 	}
@@ -126,6 +155,7 @@ public class LoggingPanel extends JPanel implements LogListener
 
 	@Override
 	public void messageLogged(LogMessage message) {
+		sources.add(message.source());
 		recorder.messageLogged(message);
 	}
 
@@ -144,14 +174,33 @@ public class LoggingPanel extends JPanel implements LogListener
 		textFilterPanel.add(menuButton);
 		textFilterPanel.add(textFilter.getComponent(), "grow");
 
+		sourcesPanel.setChangeListener(this::updateFilter);
+		sourcesPanel.setMinimumSize(new Dimension());
+
 		textArea.setPopupMenu(menu);
 		textArea.getJComponent().setPreferredSize(new Dimension(200, 100));
 
+		splitPane.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1));
+		splitPane.setOneTouchExpandable(true);
+		setSourcesPanelVisible(false);
+		splitPane.add(sourcesPanel);
+		splitPane.add(textArea.getJComponent());
+
 		this.setLayout(new MigLayout("insets 0", "[grow]", "[][grow]"));
 		this.add(textFilterPanel, "grow, wrap");
-		this.add(textArea.getJComponent(), "grow");
+		this.add(splitPane, "grow");
 
 		registerKeyStroke("alt F", "focusTextFilter", this::focusTextFilter);
+	}
+
+	private LogSourcesPanel initSourcesPanel() {
+		JButton reloadButton = new JButton("reload");
+		reloadButton.addActionListener(actionEvent -> reloadSources());
+		return new LogSourcesPanel(reloadButton);
+	}
+
+	private void reloadSources() {
+		sourcesPanel.updateSources(sources);
 	}
 
 	private void registerKeyStroke(String keyStroke, String id, final Runnable action) {
@@ -176,6 +225,8 @@ public class LoggingPanel extends JPanel implements LogListener
 			this::clear));
 		registerKeyStroke("alt C", "clearLoggingPanel",
 			this::clear);
+		menu.add(newMenuItem("Log Sources",
+			this::toggleSourcesPanel));
 		return menu;
 	}
 
@@ -195,18 +246,17 @@ public class LoggingPanel extends JPanel implements LogListener
 
 	private void updateFilter() {
 		final Predicate<String> quickSearchFilter = textFilter.getFilter();
-		Stream<ItemTextPane.Item> stream = recorder.stream().map(this::wrapLogMessage)
-			.filter(item -> quickSearchFilter.test(item.text()));
+		final Predicate<LogMessage> logLevelFilter = sourcesPanel.getFilter();
+		Function<LogMessage, ItemTextPane.Item> transform = logMessage -> {
+			if (!logLevelFilter.test(logMessage)) return null;
+			ItemTextPane.Item item = new ItemTextPane.Item(getLevelStyle(logMessage.level()),
+					logFormatter.format(logMessage));
+			if (!quickSearchFilter.test(item.text())) return null;
+			return item;
+		};
+		Stream<ItemTextPane.Item> stream =
+			recorder.stream().map(transform).filter(Objects::nonNull);
 		textArea.setData(stream.iterator());
-	}
-
-	private ItemTextPane.Item wrapLogMessage(LogMessage message) {
-		return new ItemTextPane.Item(getLevelStyle(message.level()),
-			logFormatter.format(message));
-	}
-
-	private static String appendLn(String text) {
-		return text.endsWith("\n") ? text : text + "\n";
 	}
 
 	private static AttributeSet getLevelStyle(int i) {
