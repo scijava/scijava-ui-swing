@@ -31,6 +31,7 @@
 package org.scijava.ui.swing.console;
 
 import java.awt.*;
+import java.util.function.Predicate;
 
 import javax.swing.*;
 import javax.swing.text.AttributeSet;
@@ -42,26 +43,22 @@ import javax.swing.text.StyledDocument;
 
 import net.miginfocom.swing.MigLayout;
 
-import org.scijava.console.OutputListener;
 import org.scijava.log.IgnoreAsCallingClass;
+import org.scijava.log.LogLevel;
 import org.scijava.log.LogListener;
 import org.scijava.log.LogMessage;
 import org.scijava.log.LogService;
 import org.scijava.log.Logger;
-import org.scijava.log.LogLevel;
 import org.scijava.thread.ThreadService;
 import org.scijava.ui.swing.StaticSwingUtils;
 
 /**
- * LoggingPanel can display log message and console output as a list, and
- * provides convenient ways for the user to filter this list.
- * LoggingPanel implements {@link LogListener} and {@link OutputListener}, that
- * way it can receive log message and console output from {@link LogService},
- * {@link Logger} and {@link org.scijava.console.ConsoleService}
+ * {@link LoggingPanel} can display log messages, and provides convenient ways
+ * for the user to filter this list. LoggingPanel can receive log messages from
+ * {@link LogService} and {@link Logger}.
  *
  * @see LogService
  * @see Logger
- * @see org.scijava.console.ConsoleService
  * @author Matthias Arzt
  */
 @IgnoreAsCallingClass
@@ -75,12 +72,14 @@ public class LoggingPanel extends JPanel implements LogListener
 	private static final AttributeSet STYLE_TRACE = normal(Color.GRAY);
 	private static final AttributeSet STYLE_OTHERS = normal(Color.GRAY);
 
+	private final TextFilterField textFilter = new TextFilterField(" Text Search (Alt-F)");
 	private JTextPane textPane;
 	private JScrollPane scrollPane;
 
 	private StyledDocument doc;
 
 	private final LogFormatter formatter = new LogFormatter();
+	private Predicate<String> filter = text -> true;
 
 	private final ThreadService threadService;
 
@@ -103,6 +102,8 @@ public class LoggingPanel extends JPanel implements LogListener
 	// -- Helper methods --
 
 	private void appendText(final String text, final AttributeSet style) {
+		if(!filter.test(text)) return;
+
 		threadService.queue(new Runnable() {
 
 			@Override
@@ -120,8 +121,14 @@ public class LoggingPanel extends JPanel implements LogListener
 		});
 	}
 
-	private synchronized void initGui() {
-		setLayout(new MigLayout("inset 0", "[grow,fill]", "[grow,fill,align top]"));
+	// -- Helper methods --
+
+	private void initGui() {
+
+		setLayout(new MigLayout("insets 0", "[grow]", "[][grow]"));
+
+		textFilter.setChangeListener(this::updateFilter);
+		add(textFilter.getComponent(), "grow, wrap");
 
 		textPane = new JTextPane();
 		textPane.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
@@ -148,7 +155,11 @@ public class LoggingPanel extends JPanel implements LogListener
 		scrollPane.getHorizontalScrollBar().setUnitIncrement(charWidth);
 		scrollPane.getVerticalScrollBar().setUnitIncrement(2 * lineHeight);
 
-		add(scrollPane);
+		add(scrollPane, "grow");
+	}
+
+	private void updateFilter() {
+		filter = textFilter.getFilter();
 	}
 
 	private static AttributeSet getLevelStyle(int i) {
