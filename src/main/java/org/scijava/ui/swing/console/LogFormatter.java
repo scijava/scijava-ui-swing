@@ -33,6 +33,7 @@ package org.scijava.ui.swing.console;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.EnumSet;
 
 import org.scijava.log.LogLevel;
 import org.scijava.log.LogMessage;
@@ -44,25 +45,56 @@ import org.scijava.log.LogMessage;
  */
 public class LogFormatter {
 
+	public enum Field {
+		TIME, LEVEL, SOURCE, MESSAGE, THROWABLE, ATTACHMENT
+	}
+
+	private EnumSet<Field> visibleFields = EnumSet.of(Field.TIME,
+		Field.LEVEL, Field.SOURCE, Field.MESSAGE, Field.THROWABLE);
+
+	public boolean isVisible(Field field) {
+		return visibleFields.contains(field);
+	}
+
+	public void setVisible(Field field, boolean visible) {
+		// copy on write to enable isVisible to be used concurrently
+		EnumSet<Field> copy = EnumSet.copyOf(visibleFields);
+		if (visible) copy.add(field);
+		else copy.remove(field);
+		visibleFields = copy;
+	}
+
 	public String format(LogMessage message) {
+		try {
+			final StringWriter sw = new StringWriter();
+			final PrintWriter printer = new PrintWriter(sw);
 
-		final StringWriter sw = new StringWriter();
-		final PrintWriter printer = new PrintWriter(sw);
+			if (isVisible(Field.TIME))
+				printWithBrackets(printer, message.time().toString());
 
-		printWithBrackets(printer, message.time().toString());
-		printWithBrackets(printer, LogLevel.prefix(message.level()));
-		printWithBrackets(printer, message.source().toString());
-		printer.println(message.text());
-		if (message.throwable() != null)
-			message.throwable().printStackTrace(printer);
+			if (isVisible(Field.LEVEL))
+				printWithBrackets(printer, LogLevel.prefix(message.level()));
 
-		return sw.toString();
+			if (isVisible(Field.SOURCE))
+				printWithBrackets(printer, message.source().toString());
+
+			if (isVisible(Field.ATTACHMENT)) {
+				printer.print(message.attachments());
+				printer.print(" ");
+			}
+
+			if (isVisible(Field.MESSAGE)) printer.println(message.text());
+
+			if (isVisible(Field.THROWABLE) && message.throwable() != null)
+				message.throwable().printStackTrace(printer);
+			return sw.toString();
+		}
+		catch (Exception e) {
+			return "[Exception while formatting log message: " + e + "]\n";
+		}
 	}
 
 	private void printWithBrackets(PrintWriter printer, String prefix) {
-		printer.print('[');
-		printer.print(prefix);
-		printer.print("] ");
+		printer.append('[').append(prefix).append("] ");
 	}
-
 }

@@ -207,7 +207,6 @@ public class LoggingPanel extends JPanel implements LogListener
 		getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke
 			.getKeyStroke(keyStroke), id);
 		getActionMap().put(id, new AbstractAction() {
-
 			@Override
 			public void actionPerformed(ActionEvent actionEvent) {
 				action.run();
@@ -227,7 +226,45 @@ public class LoggingPanel extends JPanel implements LogListener
 			this::clear);
 		menu.add(newMenuItem("Log Sources",
 			this::toggleSourcesPanel));
+		menu.add(initSettingsMenu());
 		return menu;
+	}
+
+	private JMenu initSettingsMenu() {
+		JMenu menu = new JMenu("Settings");
+		menu.add(checkboxItem(LogFormatter.Field.TIME, "show time stamp"));
+		menu.add(checkboxItem(LogFormatter.Field.SOURCE, "show log source"));
+		menu.add(checkboxItem(LogFormatter.Field.LEVEL, "show log level"));
+		menu.add(checkboxItem(LogFormatter.Field.THROWABLE, "show exception"));
+		menu.add(checkboxItem(LogFormatter.Field.ATTACHMENT, "show attached data"));
+		menu.add(new JSeparator());
+		menu.add(recordCallingClassMenuItem());
+		return menu;
+	}
+
+	private JCheckBoxMenuItem recordCallingClassMenuItem() {
+		JCheckBoxMenuItem menuItem = new JCheckBoxMenuItem();
+		menuItem.setState(false);
+		menuItem.setAction(new AbstractAction("record calling class") {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				recorder.setRecordCallingClass(menuItem.getState());
+				updateFilter();
+			}
+		});
+		return menuItem;
+	}
+
+	private JMenuItem checkboxItem(LogFormatter.Field field, String text) {
+		JCheckBoxMenuItem menuItem = new JCheckBoxMenuItem(text, logFormatter.isVisible(field));
+		menuItem.setAction(new AbstractAction(text) {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				logFormatter.setVisible(field, menuItem.getState());
+				updateFilter();
+			}
+		});
+		return menuItem;
 	}
 
 	static private JMenuItem newMenuItem(String text, String keyStroke,
