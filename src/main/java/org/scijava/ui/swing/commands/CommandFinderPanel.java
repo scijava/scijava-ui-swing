@@ -86,13 +86,11 @@ public class CommandFinderPanel extends JPanel implements ActionListener,
 	protected final JTable commandsList;
 	protected final CommandTableModel tableModel;
 
-	private final String baseDir;
 	private final List<ModuleInfo> commands;
 
 	public CommandFinderPanel(final ModuleService moduleService,
 		final String baseDir)
 	{
-		this.baseDir = baseDir;
 		commands = buildCommands(moduleService);
 
 		setPreferredSize(new Dimension(800, 600));
