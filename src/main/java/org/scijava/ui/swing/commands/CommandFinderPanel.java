@@ -244,7 +244,7 @@ public class CommandFinderPanel extends JPanel implements ActionListener,
 
 	/** Builds the master list of available commands. */
 	private List<ModuleInfo> buildCommands(final ModuleService moduleService) {
-		final List<ModuleInfo> list = new ArrayList<ModuleInfo>();
+		final List<ModuleInfo> list = new ArrayList<>();
 		list.addAll(moduleService.getModules());
 		Collections.sort(list);
 		return list;
@@ -255,7 +255,7 @@ public class CommandFinderPanel extends JPanel implements ActionListener,
 		final ModuleInfo selected = commandsList.getSelectedRow() < 0 ? null : getCommand();
 		int counter = 0, selectedRow = -1;
 		final String regex = getRegex();
-		final List<ModuleInfo> matches = new ArrayList<ModuleInfo>();
+		final List<ModuleInfo> matches = new ArrayList<>();
 		for (final ModuleInfo command : commands) {
 			if (!command.getMenuPath().toString().toLowerCase().matches(regex)) continue; // no match
 			matches.add(command);

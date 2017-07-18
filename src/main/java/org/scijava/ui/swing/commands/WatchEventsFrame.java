@@ -82,11 +82,11 @@ public class WatchEventsFrame extends JFrame implements ActionListener,
 
 	/** Data structure storing event types that should be filtered out. */
 	private final HashSet<Class<? extends SciJavaEvent>> filtered =
-		new HashSet<Class<? extends SciJavaEvent>>();
+		new HashSet<>();
 
 	/** Data structure storing event types that should be highlighted in bold. */
 	private final HashSet<Class<? extends SciJavaEvent>> selected =
-		new HashSet<Class<? extends SciJavaEvent>>();
+		new HashSet<>();
 
 	private final DefaultTreeModel treeModel;
 	private final DefaultMutableTreeNode root;
@@ -399,7 +399,7 @@ public class WatchEventsFrame extends JFrame implements ActionListener,
 	{
 		@SuppressWarnings("unchecked")
 		final Enumeration<DefaultMutableTreeNode> en = node.children();
-		return new IteratorPlus<DefaultMutableTreeNode>(en);
+		return new IteratorPlus<>(en);
 	}
 
 }

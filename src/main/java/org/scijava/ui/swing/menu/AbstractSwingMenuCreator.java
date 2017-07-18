@@ -64,14 +64,13 @@ public abstract class AbstractSwingMenuCreator<T> extends
 {
 
 	/** Table of button groups for radio button menu items. */
-	private HashMap<String, ButtonGroup> buttonGroups =
-		new HashMap<String, ButtonGroup>();
+	private HashMap<String, ButtonGroup> buttonGroups = new HashMap<>();
 
 	// -- MenuCreator methods --
 
 	@Override
 	public void createMenus(final ShadowMenu root, final T target) {
-		buttonGroups = new HashMap<String, ButtonGroup>();
+		buttonGroups = new HashMap<>();
 		super.createMenus(root, target);
 	}
 

@@ -95,7 +95,7 @@ public class SwingToolBar extends JToolBar implements ToolBar {
 	public SwingToolBar(final Context context) {
 		context.inject(this);
 
-		toolButtons = new HashMap<String, AbstractButton>();
+		toolButtons = new HashMap<>();
 		populateToolBar();
 	}
 
