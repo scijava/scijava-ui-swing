@@ -37,6 +37,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
+import java.lang.reflect.InvocationTargetException;
 
 import javax.swing.JFileChooser;
 import javax.swing.JMenu;
@@ -48,10 +49,12 @@ import javax.swing.WindowConstants;
 import org.scijava.app.AppService;
 import org.scijava.display.Display;
 import org.scijava.event.EventService;
+import org.scijava.log.LogService;
 import org.scijava.menu.MenuService;
 import org.scijava.menu.ShadowMenu;
 import org.scijava.platform.event.AppMenusCreatedEvent;
 import org.scijava.plugin.Parameter;
+import org.scijava.thread.ThreadService;
 import org.scijava.ui.AbstractUserInterface;
 import org.scijava.ui.SystemClipboard;
 import org.scijava.ui.UIService;
@@ -90,6 +93,12 @@ public abstract class AbstractSwingUI extends AbstractUserInterface implements
 	@Parameter
 	private UIService uiService;
 
+	@Parameter
+	private ThreadService threadService;
+
+	@Parameter
+	private LogService log;
+
 	private SwingApplicationFrame appFrame;
 	private SwingToolBar toolBar;
 	private SwingStatusBar statusBar;
@@ -125,19 +134,31 @@ public abstract class AbstractSwingUI extends AbstractUserInterface implements
 
 	@Override
 	public File chooseFile(final File file, final String style) {
-		final JFileChooser chooser = new JFileChooser(file);
-		if (FileWidget.DIRECTORY_STYLE.equals(style)) {
-			chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+		final File[] result = new File[1];
+		try {
+			// NB: We show the JFileChooser on the EDT because otherwise there could
+			// be a deadlock, particularly on macOS. See scijava/scijava-ui-swing#28.
+			threadService.invoke(() -> {
+				final JFileChooser chooser = new JFileChooser(file);
+				if (FileWidget.DIRECTORY_STYLE.equals(style)) {
+					chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+				}
+				final int rval;
+				if (FileWidget.SAVE_STYLE.equals(style)) {
+					rval = chooser.showSaveDialog(appFrame);
+				}
+				else { // default behavior
+					rval = chooser.showOpenDialog(appFrame);
+				}
+				if (rval == JFileChooser.APPROVE_OPTION) {
+					result[0] = chooser.getSelectedFile();
+				}
+			});
 		}
-		final int rval;
-		if (FileWidget.SAVE_STYLE.equals(style)) {
-			rval = chooser.showSaveDialog(appFrame);
+		catch (final InvocationTargetException | InterruptedException exc) {
+			log.error(exc);
 		}
-		else { // default behavior
-			rval = chooser.showOpenDialog(appFrame);
-		}
-		if (rval != JFileChooser.APPROVE_OPTION) return null;
-		return chooser.getSelectedFile();
+		return result[0];
 	}
 
 	@Override
