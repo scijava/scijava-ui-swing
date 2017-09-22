@@ -30,20 +30,30 @@
 
 package org.scijava.ui.swing.widget;
 
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.io.FileFilter;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.swing.Box;
 import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.TransferHandler;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.ui.UIService;
+import org.scijava.widget.FileListWidget;
 import org.scijava.widget.FileWidget;
 import org.scijava.widget.InputWidget;
 import org.scijava.widget.WidgetModel;
@@ -79,6 +89,9 @@ public class SwingFileWidget extends SwingInputWidget<File> implements
 		super.set(model);
 
 		path = new JTextField(16);
+		path.setDragEnabled(true);
+		final String style = model.getItem().getWidgetStyle();
+		path.setTransferHandler(new FileTransferHandler(style));
 		setToolTip(path);
 		getComponent().add(path);
 		path.getDocument().addDocumentListener(this);
@@ -151,5 +164,172 @@ public class SwingFileWidget extends SwingInputWidget<File> implements
 		final String text = get().getText();
 		if (text.equals(path.getText())) return; // no change
 		path.setText(text);
+	}
+
+	// -- Utility methods --
+
+	/**
+	 * Creates a {@link FileFilter} that filters files and/or directories
+	 * according to the given widget style.
+	 * <p>
+	 * It supports filtering files by extension as specified by the syntax
+	 * {@code extensions:ext1/ext2} where {@code ext1}, {@code ext2}, etc., are
+	 * extensions to accept. It also filters files and/or directories as specified
+	 * by the following styles:
+	 * </p>
+	 * <ul>
+	 * <li>{@link FileWidget#OPEN_STYLE}</li>
+	 * <li>{@link FileWidget#SAVE_STYLE}</li>
+	 * <li>{@link FileListWidget#FILES_ONLY}</li>
+	 * <li>{@link FileWidget#DIRECTORY_STYLE}</li>
+	 * <li>{@link FileListWidget#DIRECTORIES_ONLY}</li>
+	 * <li>{@link FileListWidget#FILES_AND_DIRECTORIES}</li>
+	 * </ul>
+	 * 
+	 * @param widgetStyle The style defining which files get accepted by the
+	 *          filter.
+	 * @return A {@link FileFilter} that accepts files matching the given widget
+	 *         style.
+	 */
+	public static FileFilter createFileFilter(final String widgetStyle) {
+		final List<String> filesOnlyStyles = Arrays.asList(
+			FileWidget.OPEN_STYLE, FileWidget.SAVE_STYLE, FileListWidget.FILES_ONLY
+		);
+		final List<String> dirsOnlyStyles = Arrays.asList(
+			FileWidget.DIRECTORY_STYLE, FileListWidget.DIRECTORIES_ONLY
+		);
+		final List<String> filesAndDirsStyles = Arrays.asList(
+			FileListWidget.FILES_AND_DIRECTORIES
+		);
+
+		final List<String> exts = new ArrayList<>();
+		boolean filesOnly = false, dirsOnly = false, filesAndDirs = false;
+		if (widgetStyle != null) {
+			// Extract extensions to be accepted.
+			for (final String token : widgetStyle.split(",")) {
+				if (filesOnlyStyles.contains(token)) filesOnly = true;
+				if (dirsOnlyStyles.contains(token)) dirsOnly = true;
+				if (filesAndDirsStyles.contains(token)) filesAndDirs = true;
+				if (token.startsWith("extensions")) {
+					String extensions = token.split(":")[1];
+					for (final String ext : extensions.split("/"))
+						exts.add(ext);
+				}
+			}
+		}
+		// NB: If none of the styles was set, we do the default behavior.
+		final boolean defaultBehavior = !(filesOnly || dirsOnly || filesAndDirs);
+
+		final boolean rejectFiles = dirsOnly;
+		// NB: We reject directories by default, if no styles are given.
+		final boolean rejectDirs = filesOnly || defaultBehavior;
+		return new FileFilter() {
+			@Override
+			public boolean accept(final File pathname) {
+				if (pathname.isFile() && rejectFiles) return false;
+				if (pathname.isDirectory() && rejectDirs) return false;
+				if (exts.isEmpty()) return true;
+				if (pathname.isDirectory()) return true; // Don't filter dirs by ext.
+				for (final String ext : exts) {
+					if (pathname.getName().endsWith("." + ext)) return true;
+				}
+				return false;
+			}
+		};
+	}
+
+	/**
+	 * Checks whether the given drag and drop operation offers a list of files as
+	 * one of its flavors.
+	 * 
+	 * @param support The drag and drop operation that should be checked.
+	 * @return True iff the operation can provide a list of files.
+	 */
+	public static boolean hasFiles(
+		final TransferHandler.TransferSupport support)
+	{
+		// Check the flavors to make sure one of them is file list.
+		for (final DataFlavor flavor : support.getDataFlavors()) {
+			if (flavor.isFlavorJavaFileListType()) return true;
+		}
+		return false;
+	}
+
+	/**
+	 * Gets the list of files associated with the given drag and drop operation.
+	 * 
+	 * @param support The drag and drop operation from which files should be
+	 *          extracted.
+	 * @return The list of files, or null if something goes wrong: operation does
+	 *         not provide a list; the list contains something other than
+	 *         {@link File} objects; or an exception is thrown.
+	 */
+	public static List<File> getFiles(
+		final TransferHandler.TransferSupport support)
+	{
+		try {
+			final Object files = support.getTransferable().getTransferData(
+				DataFlavor.javaFileListFlavor);
+
+			// NB: Be absolutely sure the files object is a List<File>!
+			if (!(files instanceof List)) return null;
+			@SuppressWarnings("rawtypes")
+			final List list = (List) files;
+			for (int i=0; i<list.size(); i++) {
+				if (!(list.get(i) instanceof File)) return null;
+			}
+			@SuppressWarnings({ "unchecked", "cast" })
+			List<File> listOfFiles = (List<File>) list;
+			return listOfFiles;
+		}
+		catch (final UnsupportedFlavorException | IOException exc) {
+			return null;
+		}
+	}
+
+	/**
+	 * Filters the given list of files according to the specified
+	 * {@link FileFilter}.
+	 * 
+	 * @param list The list of files to filter.
+	 * @param filter The filter to use.
+	 * @return A newly created list including only the matching files.
+	 */
+	public static List<File> filterFiles(final List<File> list,
+		final FileFilter filter)
+	{
+		return list.stream().filter(filter::accept).collect(Collectors.toList());
+	}
+
+	// -- Helper classes --
+
+	private class FileTransferHandler extends TransferHandler {
+
+		private final String style;
+
+		public FileTransferHandler(final String style) {
+			this.style = style;
+		}
+
+		@Override
+		public boolean canImport(final TransferHandler.TransferSupport support) {
+			if (!hasFiles(support)) return false;
+			final List<File> allFiles = getFiles(support);
+			if (allFiles == null || allFiles.size() != 1) return false;
+
+			final FileFilter filter = SwingFileWidget.createFileFilter(style);
+			final List<File> files = SwingFileWidget.filterFiles(allFiles, filter);
+			return files.size() == 1;
+		}
+
+		@Override
+		public boolean importData(TransferHandler.TransferSupport support) {
+			final List<File> files = getFiles(support);
+			if (files == null || files.size() != 1) return false;
+
+			final File file = files.get(0);
+			((JTextField) support.getComponent()).setText(file.getAbsolutePath());
+			return true;
+		}
 	}
 }
