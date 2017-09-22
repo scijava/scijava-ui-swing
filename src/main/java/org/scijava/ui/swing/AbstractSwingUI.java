@@ -37,6 +37,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
+import java.io.FileFilter;
 import java.lang.reflect.InvocationTargetException;
 
 import javax.swing.JFileChooser;
@@ -67,6 +68,7 @@ import org.scijava.ui.swing.console.SwingConsolePane;
 import org.scijava.ui.swing.menu.SwingJMenuBarCreator;
 import org.scijava.ui.swing.menu.SwingJPopupMenuCreator;
 import org.scijava.ui.viewer.DisplayViewer;
+import org.scijava.widget.FileListWidget;
 import org.scijava.widget.FileWidget;
 
 /**
@@ -152,6 +154,56 @@ public abstract class AbstractSwingUI extends AbstractUserInterface implements
 				}
 				if (rval == JFileChooser.APPROVE_OPTION) {
 					result[0] = chooser.getSelectedFile();
+				}
+			});
+		}
+		catch (final InvocationTargetException | InterruptedException exc) {
+			log.error(exc);
+		}
+		return result[0];
+	}
+
+	@Override
+	public File[] chooseFiles(final File parent, final File[] files, final FileFilter filter, final String style) {
+		final File[][] result = new File[1][];
+		try {
+			// NB: We show the JFileChooser on the EDT because otherwise there could
+			// be a deadlock, particularly on macOS.
+			// See the {@link #chooseFile(File, String) chooseFile} method.
+			threadService.invoke(() -> {
+				final JFileChooser chooser = new JFileChooser(parent);
+				chooser.setMultiSelectionEnabled(true);
+				if (style.equals(FileListWidget.FILES_AND_DIRECTORIES)) {
+					chooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
+				}
+				else if (style.equals(FileListWidget.DIRECTORIES_ONLY)) {
+					chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+				}
+				else {
+					chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+				}
+				chooser.setSelectedFiles(files);
+				if (filter != null) {
+					javax.swing.filechooser.FileFilter fileFilter = new javax.swing.filechooser.FileFilter() {
+
+						@Override
+						public String getDescription() {
+							return filter.toString();
+						}
+
+						@Override
+						public boolean accept(File f) {
+							if (filter.accept(f)) return true;
+							// directories should always be displayed
+							// independent from selection mode
+							return f.isDirectory();
+						}
+					};
+					chooser.setFileFilter(fileFilter);
+				}
+				int rval = chooser.showOpenDialog(appFrame);
+				if (rval == JFileChooser.APPROVE_OPTION) {
+					result[0] = chooser.getSelectedFiles();
 				}
 			});
 		}
