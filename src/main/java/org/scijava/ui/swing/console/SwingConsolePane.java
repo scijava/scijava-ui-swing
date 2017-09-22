@@ -32,13 +32,13 @@ package org.scijava.ui.swing.console;
 
 import java.awt.Component;
 
-import javax.swing.JPanel;
-import javax.swing.JTextPane;
+import javax.swing.*;
 
 import net.miginfocom.swing.MigLayout;
 
 import org.scijava.Context;
 import org.scijava.console.OutputEvent;
+import org.scijava.log.LogService;
 import org.scijava.plugin.Parameter;
 import org.scijava.thread.ThreadService;
 import org.scijava.ui.console.AbstractConsolePane;
@@ -46,6 +46,11 @@ import org.scijava.ui.console.ConsolePane;
 
 /**
  * Swing implementation of {@link ConsolePane}.
+ * <p>
+ * This implementation consists of a <em>console</em> tab and a <em>log</em>
+ * tab, provided by a {@link ConsolePanel} and {@link LoggingPanel}
+ * respectively.
+ * </p>
  *
  * @author Curtis Rueden
  */
@@ -54,7 +59,12 @@ public class SwingConsolePane extends AbstractConsolePane<JPanel> {
 	@Parameter
 	private ThreadService threadService;
 
+	@Parameter
+	private LogService logService;
+
 	private ConsolePanel consolePanel;
+
+	private LoggingPanel loggingPanel;
 
 	/**
 	 * The console pane's containing window; e.g., a {@link javax.swing.JFrame} or
@@ -121,8 +131,13 @@ public class SwingConsolePane extends AbstractConsolePane<JPanel> {
 	private synchronized void initLoggingPanel() {
 		if (consolePanel != null) return;
 		consolePanel = new ConsolePanel(threadService);
+		loggingPanel = new LoggingPanel(threadService);
+		logService.addLogListener(loggingPanel);
 		component = new JPanel(new MigLayout("", "[grow]", "[grow]"));
-		component.add(consolePanel, "grow");
+		JTabbedPane tabs = new JTabbedPane();
+		tabs.addTab("Console", consolePanel);
+		tabs.addTab("Log", loggingPanel);
+		component.add(tabs, "grow");
 	}
 
 	// -- Helper methods - testing --
