@@ -40,6 +40,7 @@ import org.scijava.Context;
 import org.scijava.console.OutputEvent;
 import org.scijava.log.LogService;
 import org.scijava.plugin.Parameter;
+import org.scijava.prefs.PrefService;
 import org.scijava.thread.ThreadService;
 import org.scijava.ui.console.AbstractConsolePane;
 import org.scijava.ui.console.ConsolePane;
@@ -56,11 +57,16 @@ import org.scijava.ui.console.ConsolePane;
  */
 public class SwingConsolePane extends AbstractConsolePane<JPanel> {
 
+	public static final String LOG_FORMATTING_SETTINGS_KEY = "/log-formatting";
+
 	@Parameter
 	private ThreadService threadService;
 
 	@Parameter
 	private LogService logService;
+
+	@Parameter
+	private PrefService prefService;
 
 	private ConsolePanel consolePanel;
 
@@ -131,7 +137,7 @@ public class SwingConsolePane extends AbstractConsolePane<JPanel> {
 	private synchronized void initLoggingPanel() {
 		if (consolePanel != null) return;
 		consolePanel = new ConsolePanel(threadService);
-		loggingPanel = new LoggingPanel(threadService);
+		loggingPanel = new LoggingPanel(threadService, prefService, LOG_FORMATTING_SETTINGS_KEY);
 		logService.addLogListener(loggingPanel);
 		component = new JPanel(new MigLayout("", "[grow]", "[grow]"));
 		JTabbedPane tabs = new JTabbedPane();

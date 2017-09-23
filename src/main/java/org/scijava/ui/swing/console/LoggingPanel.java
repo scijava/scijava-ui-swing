@@ -57,6 +57,7 @@ import org.scijava.log.LogMessage;
 import org.scijava.log.LogService;
 import org.scijava.log.LogSource;
 import org.scijava.log.Logger;
+import org.scijava.prefs.PrefService;
 import org.scijava.thread.ThreadService;
 
 /**
@@ -99,11 +100,12 @@ public class LoggingPanel extends JPanel implements LogListener
 	// -- constructor --
 
 	public LoggingPanel(Context context) {
-		this(context.getService(ThreadService.class));
+		this(context.getService(ThreadService.class), null, null);
 	}
 
-	public LoggingPanel(ThreadService threadService) {
+	public LoggingPanel(ThreadService threadService, PrefService prefService, String prefKey) {
 		textArea = new ItemTextPane(threadService);
+		logFormatter.setPrefService(prefService, prefKey);
 		initGui();
 		setRecorder(new LogRecorder());
 	}

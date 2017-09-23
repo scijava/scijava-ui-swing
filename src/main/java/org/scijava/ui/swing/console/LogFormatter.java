@@ -34,9 +34,11 @@ package org.scijava.ui.swing.console;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.EnumSet;
+import java.util.Map;
 
 import org.scijava.log.LogLevel;
 import org.scijava.log.LogMessage;
+import org.scijava.prefs.PrefService;
 
 /**
  * Used by {@link LoggingPanel} to simplify formatting log messages.
@@ -44,6 +46,16 @@ import org.scijava.log.LogMessage;
  * @author Matthias Arzt
  */
 public class LogFormatter {
+
+	private String prefKey = null;
+
+	private PrefService prefService = null;
+
+	public void setPrefService(PrefService prefService, String prefKey) {
+		this.prefService = (prefKey != null && !prefKey.isEmpty()) ? prefService : null;
+		this.prefKey = prefKey;
+		applySettings();
+	}
 
 	public enum Field {
 		TIME, LEVEL, SOURCE, MESSAGE, THROWABLE, ATTACHMENT
@@ -62,6 +74,7 @@ public class LogFormatter {
 		if (visible) copy.add(field);
 		else copy.remove(field);
 		visibleFields = copy;
+		changeSetting(field, visible);
 	}
 
 	public String format(LogMessage message) {
@@ -96,5 +109,25 @@ public class LogFormatter {
 
 	private void printWithBrackets(PrintWriter printer, String prefix) {
 		printer.append('[').append(prefix).append("] ");
+	}
+
+	// -- Helper methods --
+
+	public void applySettings() {
+		if(prefService == null) return;
+		Map<String, String> settings = prefService.getMap(prefKey);
+		for(Field field : Field.values()) {
+			String defaultValue = Boolean.toString(isVisible(field));
+			String value = settings.getOrDefault(field.toString(), defaultValue);
+			setVisible(field, Boolean.valueOf(value));
+		}
+		visibleFields.toString();
+	}
+
+	public void changeSetting(Field field, boolean visible) {
+		if(prefService == null) return;
+		Map<String, String> settings = prefService.getMap(prefKey);
+		settings.put(field.toString(), Boolean.toString(visible));
+		prefService.putMap(prefKey, settings);
 	}
 }
