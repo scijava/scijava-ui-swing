@@ -98,6 +98,9 @@
 Wisconsin-Madison.</license.copyrightOwners>
 		<license.projectName>SciJava UI components for Java Swing.</license.projectName>
 		<scijava-common.version>2.66.0</scijava-common.version>
+
+		<!-- NB: Deploy releases to the ImageJ Maven repository. -->
+		<releaseProfiles>deploy-to-imagej</releaseProfiles>
 	</properties>
 
 	<repositories>
