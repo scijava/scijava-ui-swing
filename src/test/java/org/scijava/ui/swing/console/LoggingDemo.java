@@ -30,9 +30,11 @@
 
 package org.scijava.ui.swing.console;
 
-import java.awt.*;
+import java.awt.Component;
 
-import javax.swing.*;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.WindowConstants;
 
 import net.miginfocom.swing.MigLayout;
 

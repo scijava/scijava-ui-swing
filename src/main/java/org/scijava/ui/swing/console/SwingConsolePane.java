@@ -32,7 +32,9 @@ package org.scijava.ui.swing.console;
 
 import java.awt.Component;
 
-import javax.swing.*;
+import javax.swing.JPanel;
+import javax.swing.JTabbedPane;
+import javax.swing.JTextPane;
 
 import net.miginfocom.swing.MigLayout;
 

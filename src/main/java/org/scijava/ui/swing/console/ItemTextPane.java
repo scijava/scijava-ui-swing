@@ -35,7 +35,10 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.Objects;
 
-import javax.swing.*;
+import javax.swing.JComponent;
+import javax.swing.JPopupMenu;
+import javax.swing.JScrollPane;
+import javax.swing.JTextPane;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultStyledDocument;
