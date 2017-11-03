@@ -60,7 +60,7 @@ import org.scijava.ui.swing.mdi.viewer.SwingMdiDisplayWindow;
  * @author Curtis Rueden
  */
 @Plugin(type = UserInterface.class, name = SwingMdiUI.NAME,
-	priority = Priority.LOW_PRIORITY)
+	priority = Priority.LOW)
 public class SwingMdiUI extends AbstractSwingUI {
 
 	public static final String NAME = "swing-mdi";

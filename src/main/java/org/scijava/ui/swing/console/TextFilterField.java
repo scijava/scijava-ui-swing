@@ -119,7 +119,7 @@ class TextFilterField {
 		prompt.setFont(textField.getFont().deriveFont(Font.ITALIC));
 		prompt.setForeground(changeAlpha(textField.getForeground(), 128));
 		prompt.setBorder(new EmptyBorder(textField.getInsets()));
-		prompt.setHorizontalAlignment(JLabel.LEADING);
+		prompt.setHorizontalAlignment(SwingConstants.LEADING);
 		textField.setLayout(new BorderLayout());
 		textField.add(prompt);
 		updatePromptVisibility();

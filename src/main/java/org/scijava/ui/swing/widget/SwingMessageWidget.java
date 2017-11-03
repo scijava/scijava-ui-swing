@@ -44,7 +44,7 @@ import org.scijava.widget.WidgetModel;
  * 
  * @author Curtis Rueden
  */
-@Plugin(type = InputWidget.class, priority = Priority.HIGH_PRIORITY)
+@Plugin(type = InputWidget.class, priority = Priority.HIGH)
 public class SwingMessageWidget extends SwingInputWidget<String> implements
 	MessageWidget<JPanel>
 {

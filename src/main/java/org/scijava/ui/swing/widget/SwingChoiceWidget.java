@@ -53,7 +53,7 @@ public class SwingChoiceWidget extends SwingInputWidget<String> implements
 	ActionListener, ChoiceWidget<JPanel>
 {
 
-	public static final double PRIORITY = Priority.NORMAL_PRIORITY;
+	public static final double PRIORITY = Priority.NORMAL;
 
 	private JComboBox<String> comboBox;
 

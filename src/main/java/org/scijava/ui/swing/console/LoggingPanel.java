@@ -168,7 +168,7 @@ public class LoggingPanel extends JPanel implements LogListener
 
 		JPopupMenu menu = initMenu();
 
-		JButton menuButton = new BasicArrowButton(BasicArrowButton.SOUTH);
+		JButton menuButton = new BasicArrowButton(SwingConstants.SOUTH);
 		menuButton.addActionListener(a ->
 			menu.show(menuButton, 0, menuButton.getHeight()));
 

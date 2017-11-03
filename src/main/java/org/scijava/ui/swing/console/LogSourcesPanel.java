@@ -292,6 +292,7 @@ class LogSourcesPanel extends JPanel {
 			this.node = new DefaultMutableTreeNode(this);
 		}
 
+		@Override
 		public String toString() {
 			String name = source.isRoot() ? "ROOT" : source.name();
 			return name + " " + getLevelString();
@@ -325,7 +326,7 @@ class LogSourcesPanel extends JPanel {
 					return DEBUG;
 				default:
 					if (x >= LogLevel.TRACE) return TRACE;
-					else throw new IllegalArgumentException();
+					throw new IllegalArgumentException();
 			}
 		}
 	}
