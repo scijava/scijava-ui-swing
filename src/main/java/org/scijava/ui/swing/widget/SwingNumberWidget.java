@@ -37,6 +37,8 @@ import java.awt.event.AdjustmentEvent;
 import java.awt.event.AdjustmentListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.text.DecimalFormat;
@@ -68,7 +70,7 @@ import org.scijava.widget.WidgetModel;
  */
 @Plugin(type = InputWidget.class)
 public class SwingNumberWidget extends SwingInputWidget<Number> implements
-	NumberWidget<JPanel>, AdjustmentListener, ChangeListener
+	NumberWidget<JPanel>, AdjustmentListener, ChangeListener, MouseWheelListener
 {
 
 	@Parameter
@@ -159,6 +161,17 @@ public class SwingNumberWidget extends SwingInputWidget<Number> implements
 		}
 		updateModel();
 	}
+	
+	// -- MouseWheelListener methods --
+	
+	@Override
+	public void mouseWheelMoved(final MouseWheelEvent e) {
+		int value = getValue().intValue() + e.getWheelRotation();
+		value = Math.min(value, this.get().getMax().intValue());
+		value = Math.max(value, this.get().getMin().intValue());
+		spinner.setValue(value);
+		syncSliders();
+	}
 
 	// -- Helper methods --
 
@@ -180,6 +193,7 @@ public class SwingNumberWidget extends SwingInputWidget<Number> implements
 		setToolTip(scrollBar);
 		getComponent().add(scrollBar);
 		scrollBar.addAdjustmentListener(this);
+		scrollBar.addMouseWheelListener(this);
 	}
 
 	private void addSlider(final Number min, final Number max,
@@ -213,6 +227,7 @@ public class SwingNumberWidget extends SwingInputWidget<Number> implements
 		setToolTip(slider);
 		getComponent().add(slider);
 		slider.addChangeListener(this);
+		slider.addMouseWheelListener(this);
 	}
 
 	/**
