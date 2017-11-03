@@ -52,6 +52,7 @@ import javax.swing.SpinnerNumberModel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import org.scijava.log.LogService;
 import org.scijava.module.ModuleService;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
@@ -75,6 +76,9 @@ public class SwingNumberWidget extends SwingInputWidget<Number> implements
 
 	@Parameter
 	private ModuleService moduleService;
+
+	@Parameter
+	private LogService log;
 
 	private JScrollBar scrollBar;
 	private JSlider slider;
@@ -101,26 +105,10 @@ public class SwingNumberWidget extends SwingInputWidget<Number> implements
 
 		// add optional widgets, if specified
 		if (model.isStyle(NumberWidget.SCROLL_BAR_STYLE)) {
-			int smx = softMax.intValue();
-			if (smx < Integer.MAX_VALUE) smx++;
-			scrollBar =
-				new JScrollBar(Adjustable.HORIZONTAL, softMin.intValue(), 1, softMin
-					.intValue(), smx);
-			scrollBar.setUnitIncrement(stepSize.intValue());
-			setToolTip(scrollBar);
-			getComponent().add(scrollBar);
-			scrollBar.addAdjustmentListener(this);
+			addScrollBar(softMin, softMax, stepSize);
 		}
 		else if (model.isStyle(NumberWidget.SLIDER_STYLE)) {
-			slider =
-				new JSlider(softMin.intValue(), softMax.intValue(), softMin.intValue());
-			slider.setMajorTickSpacing((softMax.intValue() - softMin.intValue()) / 4);
-			slider.setMinorTickSpacing(stepSize.intValue());
-			slider.setPaintLabels(true);
-			slider.setPaintTicks(true);
-			setToolTip(slider);
-			getComponent().add(slider);
-			slider.addChangeListener(this);
+			addSlider(softMin, softMax, stepSize);
 		}
 
 		// add spinner widget
@@ -173,6 +161,59 @@ public class SwingNumberWidget extends SwingInputWidget<Number> implements
 	}
 
 	// -- Helper methods --
+
+	private void addScrollBar(final Number min, final Number max,
+		final Number step)
+	{
+		if (min == null || max == null || step == null) {
+			log.warn("Invalid min/max/step; cannot render scroll bar");
+			return;
+		}
+		int mn = min.intValue();
+		if (mn == Integer.MIN_VALUE) mn = Integer.MIN_VALUE + 1;
+		int mx = max.intValue();
+		if (mx < Integer.MAX_VALUE) mx++;
+		final int st = step.intValue();
+
+		scrollBar = new JScrollBar(Adjustable.HORIZONTAL, mn, 1, mn, mx);
+		scrollBar.setUnitIncrement(st);
+		setToolTip(scrollBar);
+		getComponent().add(scrollBar);
+		scrollBar.addAdjustmentListener(this);
+	}
+
+	private void addSlider(final Number min, final Number max,
+		final Number step)
+	{
+		if (min == null || max == null || step == null) {
+			log.warn("Invalid min/max/step; cannot render slider");
+			return;
+		}
+		final int mn = min.intValue();
+		final int mx = max.intValue();
+		final int st = step.intValue();
+		if ((long) mx - mn > Integer.MAX_VALUE) {
+			log.warn("Slider span too large; max - min < 2^31 required.");
+			return;
+		}
+		final int span = mx - mn;
+
+		slider = new JSlider(mn, mx, mn);
+
+		// Compute optimal major ticks and labels.
+		final int labelWidth = Math.max(("" + mn).length(), ("" + mx).length());
+		slider.setMajorTickSpacing(labelWidth < 5 ? span / 4 : span);
+		slider.setPaintLabels(labelWidth < 10);
+
+		// Compute optimal minor ticks.
+		final int stepCount = span / st + 1;
+		slider.setMinorTickSpacing(st);
+		slider.setPaintTicks(stepCount < 100);
+
+		setToolTip(slider);
+		getComponent().add(slider);
+		slider.addChangeListener(this);
+	}
 
 	/**
 	 * Limit component width to a certain maximum. This is a HACK to work around
