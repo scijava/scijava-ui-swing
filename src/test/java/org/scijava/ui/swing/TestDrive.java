@@ -34,7 +34,7 @@ import org.scijava.SciJava;
 import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
-import org.scijava.ui.swing.widget.IntRange;
+import org.scijava.util.ComparableRange;
 
 /**
  * Tests the SciJava UI.
@@ -55,7 +55,7 @@ public class TestDrive {
 		private String name;
 		
 		@Parameter(label = "Bounds", min = "1", max = "1000")
-		private IntRange intRange;
+		private ComparableRange intRange;
 		
 		@Parameter
 		private int stuff;

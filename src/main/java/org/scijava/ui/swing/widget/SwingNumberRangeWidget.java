@@ -30,6 +30,9 @@
 
 package org.scijava.ui.swing.widget;
 
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
@@ -38,6 +41,8 @@ import org.scijava.module.ModuleService;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.thread.ThreadService;
+import org.scijava.util.GenericUtils;
+import org.scijava.util.Range;
 import org.scijava.widget.InputWidget;
 import org.scijava.widget.WidgetModel;
 
@@ -47,8 +52,8 @@ import org.scijava.widget.WidgetModel;
  * @author Curtis Rueden
  */
 @Plugin(type = InputWidget.class)
-public class SwingRangeWidget extends SwingInputWidget<IntRange> implements
-	ChangeListener
+public class SwingNumberRangeWidget<N extends Number & Comparable<N>> extends
+	SwingInputWidget<Range<N>> implements ChangeListener
 {
 
 	@Parameter
@@ -65,8 +70,9 @@ public class SwingRangeWidget extends SwingInputWidget<IntRange> implements
 	// -- InputWidget methods --
 
 	@Override
-	public IntRange getValue() {
-		return new IntRange(slider.getMinimum(), slider.getMaximum());
+	public Range<N> getValue() {
+		Range.between(fromInclusive, toInclusive)
+		return new Range(slider.getMinimum(), slider.getMaximum());
 	}
 
 	// -- WrapperPlugin methods --
@@ -95,8 +101,7 @@ public class SwingRangeWidget extends SwingInputWidget<IntRange> implements
 
 	@Override
 	public boolean supports(final WidgetModel model) {
-		return super.supports(model) && //
-			model.getItem().getType().isAssignableFrom(IntRange.class);
+		return super.supports(model) && isNumberRange(model);
 	}
 
 	// -- ChangeListener methods --
@@ -111,8 +116,8 @@ public class SwingRangeWidget extends SwingInputWidget<IntRange> implements
 	@Override
 	public void doRefresh() {
 		final Object value = get().getValue();
-		if (!(value instanceof IntRange)) return; // invalid value
-		final IntRange range = (IntRange) value;
+		if (!(value instanceof Range)) return; // invalid value
+		final Range<? extends Number> range = (Range<?>) value;
 		if (slider.getValue() != range.min()) {
 			System.out.println("==> slider min -> " + range.min());
 			slider.setValue(range.min());
@@ -121,5 +126,33 @@ public class SwingRangeWidget extends SwingInputWidget<IntRange> implements
 			System.out.println("==> slider max -> " + range.max());
 			slider.setUpperValue(range.max());
 		}
+	}
+	
+	// -- Helper methods --
+
+	private boolean isNumberRange(final WidgetModel model) {
+		final Type rangeType = rangeType(model);
+		return rangeType != null && //
+			isAssignable(rangeType, Number.class) && //
+			isAssignable(rangeType, Comparable.class);
+	}
+
+	private Class<?> rangeType(final WidgetModel model) {
+		final Type type = model.getItem().getGenericType();
+		final Type rangeType = GenericUtils.getTypeParameter(type, Range.class, 0);
+		return GenericUtils.getClasses(rangeType).stream() //
+			.filter(c -> ) //
+			.findFirst();
+	}
+
+	private Range<N> createRange(N min, N max) {
+		return Range.between(min, max);
+	}
+
+	private Range<N> asNumberRange(final Object value) {
+		if (!(value instanceof Range)) return null;
+		@SuppressWarnings("unchecked")
+		final Range<? extends Number> numberRange = (Range<? extends Number>) value;
+		return numberRange;
 	}
 }
