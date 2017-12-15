@@ -117,6 +117,10 @@ Wisconsin-Madison.</license.copyrightOwners>
 		</dependency>
 		<dependency>
 			<groupId>org.scijava</groupId>
+			<artifactId>scijava-search</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.scijava</groupId>
 			<artifactId>scijava-table</artifactId>
 		</dependency>
 		<dependency>
