@@ -75,12 +75,6 @@ public class OptionsLookAndFeel extends OptionsPlugin {
 	// -- Parameters --
 
 	@Parameter
-	private UIService uiService;
-
-	@Parameter
-	private DisplayService displayService;
-
-	@Parameter
 	private LogService log;
 
 	@Parameter(label = "Look & Feel", persist = false,
@@ -164,14 +158,14 @@ public class OptionsLookAndFeel extends OptionsPlugin {
 		final Set<Component> components = new HashSet<>();
 
 		// add Swing UI components from visible UIs
-		for (final UserInterface ui : uiService.getVisibleUIs()) {
+		for (final UserInterface ui : uiService().getVisibleUIs()) {
 			findComponents(components, ui.getApplicationFrame());
 			findComponents(components, ui.getConsolePane());
 		}
 
 		// add Swing UI components from visible displays
-		for (final Display<?> d : displayService.getDisplays()) {
-			final DisplayViewer<?> viewer = uiService.getDisplayViewer(d);
+		for (final Display<?> d : displayService().getDisplays()) {
+			final DisplayViewer<?> viewer = uiService().getDisplayViewer(d);
 			if (viewer == null) continue;
 			findComponents(components, viewer.getWindow());
 		}
@@ -201,11 +195,19 @@ public class OptionsLookAndFeel extends OptionsPlugin {
 		}
 	}
 
+	private UIService uiService() {
+		return getContext().service(UIService.class);
+	}
+
+	private DisplayService displayService() {
+		return getContext().service(DisplayService.class);
+	}
+
 	// -- Deprecated methods --
 
 	@Deprecated
 	public UserInterface getUI() {
-		return uiService.getDefaultUI();
+		return uiService().getDefaultUI();
 	}
 
 	@Deprecated
