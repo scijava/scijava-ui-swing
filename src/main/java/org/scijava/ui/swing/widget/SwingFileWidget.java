@@ -289,6 +289,24 @@ public class SwingFileWidget extends SwingInputWidget<File> implements
 	}
 
 	/**
+	 * Gets the String content of the current transfer support
+	 * 
+	 * @param support
+	 *            The paste (or drag and drop) operation from which text should
+	 *            be extracted.
+	 * 
+	 * @return The pasted (or dropped) text
+	 */
+	public static String getText(final TransferHandler.TransferSupport support) {
+		try {
+			return (String) support.getTransferable().getTransferData(DataFlavor.stringFlavor);
+		} catch (UnsupportedFlavorException | IOException exc) {
+			return "";
+		}
+
+	}
+
+	/**
 	 * Filters the given list of files according to the specified
 	 * {@link FileFilter}.
 	 * 
@@ -348,7 +366,15 @@ public class SwingFileWidget extends SwingInputWidget<File> implements
 		@Override
 		public boolean importData(TransferHandler.TransferSupport support) {
 			final List<File> files = getFiles(support);
-			if (files == null || files.size() != 1) return false;
+			if (files == null) {
+				String text = getText(support);
+				if (text.equals(""))
+					return false;
+				// TODO check if text matches filter/style
+				((JTextField) support.getComponent()).setText(text);
+				return true;
+			}
+			if (files.size() != 1) return false;
 
 			final File file = files.get(0);
 			((JTextField) support.getComponent()).setText(file.getAbsolutePath());
