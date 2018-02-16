@@ -34,6 +34,7 @@ import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.JScrollPane;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.AbstractDocument;
@@ -95,8 +96,10 @@ public class SwingTextWidget extends SwingInputWidget<String> implements
 		final int columns = model.getItem().getColumnCount();
 
 		// construct text widget of the appropriate style, if specified
+		boolean addScrollPane = false;
 		if (model.isStyle(TextWidget.AREA_STYLE)) {
 			textComponent = new JTextArea("", 5, columns);
+			addScrollPane = true;
 		}
 		else if (model.isStyle(TextWidget.PASSWORD_STYLE)) {
 			textComponent = new JPasswordField("", columns);
@@ -105,7 +108,7 @@ public class SwingTextWidget extends SwingInputWidget<String> implements
 			textComponent = new JTextField("", columns);
 		}
 		setToolTip(textComponent);
-		getComponent().add(textComponent);
+		getComponent().add(addScrollPane ? new JScrollPane(textComponent) : textComponent);
 		limitLength();
 		textComponent.getDocument().addDocumentListener(this);
 
