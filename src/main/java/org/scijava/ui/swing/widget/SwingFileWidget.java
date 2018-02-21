@@ -32,6 +32,7 @@ package org.scijava.ui.swing.widget;
 
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.UnsupportedFlavorException;
+import java.awt.dnd.InvalidDnDOperationException;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -288,6 +289,24 @@ public class SwingFileWidget extends SwingInputWidget<File> implements
 	}
 
 	/**
+	 * Gets the String content of the current transfer support
+	 * 
+	 * @param support
+	 *            The paste (or drag and drop) operation from which text should
+	 *            be extracted.
+	 * 
+	 * @return The pasted (or dropped) text
+	 */
+	public static String getText(final TransferHandler.TransferSupport support) {
+		try {
+			return (String) support.getTransferable().getTransferData(DataFlavor.stringFlavor);
+		} catch (UnsupportedFlavorException | IOException exc) {
+			return "";
+		}
+
+	}
+
+	/**
 	 * Filters the given list of files according to the specified
 	 * {@link FileFilter}.
 	 * 
@@ -314,18 +333,48 @@ public class SwingFileWidget extends SwingInputWidget<File> implements
 		@Override
 		public boolean canImport(final TransferHandler.TransferSupport support) {
 			if (!hasFiles(support)) return false;
-			final List<File> allFiles = getFiles(support);
-			if (allFiles == null || allFiles.size() != 1) return false;
 
-			final FileFilter filter = SwingFileWidget.createFileFilter(style);
-			final List<File> files = SwingFileWidget.filterFiles(allFiles, filter);
-			return files.size() == 1;
+			// We wish to test the content of the transfer data and
+			// determine if they are (a) files and (b) files we are
+			// actually interested in processing. So we need to call
+			// getTransferData() so that we can inspect the file names.
+			// Unfortunately, this will not always work.
+			//    Under Windows, the Transferable instance
+			// will have transfer data ONLY while the mouse button is
+			// depressed. However, when the user releases the mouse
+			// button, this method will be called one last time. And when
+			// when this method attempts to getTransferData, Java will throw
+			// an InvalidDnDOperationException. Since we know that the
+			// exception is coming, we simply catch it and ignore it.
+			// See:
+			// https://coderanch.com/t/664525/java/Invalid-Drag-Drop-Exception
+			try {
+				final List<File> allFiles = getFiles(support);
+				if (allFiles == null || allFiles.size() != 1)
+					return false;
+
+				final FileFilter filter = SwingFileWidget
+						.createFileFilter(style);
+				final List<File> files = SwingFileWidget.filterFiles(allFiles,
+						filter);
+				return files.size() == 1;
+			} catch (InvalidDnDOperationException exc) {
+				return true;
+			}
 		}
 
 		@Override
 		public boolean importData(TransferHandler.TransferSupport support) {
 			final List<File> files = getFiles(support);
-			if (files == null || files.size() != 1) return false;
+			if (files == null) {
+				String text = getText(support);
+				if (text.equals(""))
+					return false;
+				// TODO check if text matches filter/style
+				((JTextField) support.getComponent()).setText(text);
+				return true;
+			}
+			if (files.size() != 1) return false;
 
 			final File file = files.get(0);
 			((JTextField) support.getComponent()).setText(file.getAbsolutePath());
