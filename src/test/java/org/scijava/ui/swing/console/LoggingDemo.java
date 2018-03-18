@@ -50,9 +50,9 @@ import org.scijava.ui.UIService;
 /**
  * {@link LoggingDemo} is an example to demonstrate the capabilitie of
  * {@link SwingConsolePane} and {@link LoggingPanel}. It shows the scijava gui,
- * and starts to example commands. The first command {@link LoggingLoop} print
+ * and starts two example commands. The first command {@link LoggingLoop} print
  * "Hello World" and logs a message every second. The second command
- * {@link PluginThatLogs} opens a window with it's on {@link LoggingPanel} and
+ * {@link PluginThatLogs} opens a window with its own {@link LoggingPanel} and
  * provides some buttons to emit some example log messages.
  *
  * @author Matthias Arzt
