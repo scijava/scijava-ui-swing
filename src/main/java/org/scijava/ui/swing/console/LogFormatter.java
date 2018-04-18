@@ -126,8 +126,8 @@ public class LogFormatter {
 
 	public void changeSetting(Field field, boolean visible) {
 		if(prefService == null) return;
-		Map<String, String> settings = prefService.getMap(prefKey);
+		Map<String, String> settings = prefService.getMap(LogFormatter.class, prefKey);
 		settings.put(field.toString(), Boolean.toString(visible));
-		prefService.putMap(prefKey, settings);
+		prefService.putMap(LogFormatter.class, settings, prefKey);
 	}
 }
