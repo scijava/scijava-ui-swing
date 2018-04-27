@@ -114,7 +114,7 @@ public class LogFormatter {
 	// -- Helper methods --
 
 	public void applySettings() {
-		if(prefService == null) return;
+		if (skipPersist()) return;
 		Map<String, String> settings = prefService.getMap(prefKey);
 		for(Field field : Field.values()) {
 			String defaultValue = Boolean.toString(isVisible(field));
@@ -125,9 +125,13 @@ public class LogFormatter {
 	}
 
 	public void changeSetting(Field field, boolean visible) {
-		if(prefService == null) return;
+		if (skipPersist()) return;
 		Map<String, String> settings = prefService.getMap(LogFormatter.class, prefKey);
 		settings.put(field.toString(), Boolean.toString(visible));
 		prefService.putMap(LogFormatter.class, settings, prefKey);
+	}
+
+	private boolean skipPersist() {
+		return prefService == null || prefKey == null || prefKey.isEmpty();
 	}
 }
