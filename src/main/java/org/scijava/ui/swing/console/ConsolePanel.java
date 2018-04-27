@@ -47,9 +47,11 @@ import javax.swing.text.StyledDocument;
 
 import net.miginfocom.swing.MigLayout;
 
+import org.scijava.Context;
 import org.scijava.console.OutputEvent;
 import org.scijava.console.OutputListener;
 import org.scijava.log.IgnoreAsCallingClass;
+import org.scijava.plugin.Parameter;
 import org.scijava.thread.ThreadService;
 import org.scijava.ui.swing.StaticSwingUtils;
 
@@ -73,10 +75,11 @@ public class ConsolePanel extends JPanel implements OutputListener
 	private Style stdoutGlobal;
 	private Style stderrGlobal;
 
-	private final ThreadService threadService;
+	@Parameter
+	private ThreadService threadService;
 
-	public ConsolePanel(ThreadService threadService) {
-		this.threadService = threadService;
+	public ConsolePanel(final Context context) {
+		context.inject(this);
 		initGui();
 	}
 

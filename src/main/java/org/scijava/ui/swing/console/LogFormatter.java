@@ -36,8 +36,10 @@ import java.io.StringWriter;
 import java.util.EnumSet;
 import java.util.Map;
 
+import org.scijava.Context;
 import org.scijava.log.LogLevel;
 import org.scijava.log.LogMessage;
+import org.scijava.plugin.Parameter;
 import org.scijava.prefs.PrefService;
 
 /**
@@ -47,12 +49,13 @@ import org.scijava.prefs.PrefService;
  */
 public class LogFormatter {
 
-	private String prefKey = null;
+	private final String prefKey;
 
-	private PrefService prefService = null;
+	@Parameter(required = false)
+	private PrefService prefService;
 
-	public void setPrefService(PrefService prefService, String prefKey) {
-		this.prefService = (prefKey != null && !prefKey.isEmpty()) ? prefService : null;
+	public LogFormatter(final Context context, final String prefKey) {
+		context.inject(this);
 		this.prefKey = prefKey;
 		applySettings();
 	}
@@ -114,8 +117,9 @@ public class LogFormatter {
 	// -- Helper methods --
 
 	public void applySettings() {
-		if(prefService == null) return;
-		Map<String, String> settings = prefService.getMap(prefKey);
+		if (skipPersist()) return;
+		final Map<String, String> settings = //
+			prefService.getMap(LogFormatter.class, prefKey);
 		for(Field field : Field.values()) {
 			String defaultValue = Boolean.toString(isVisible(field));
 			String value = settings.getOrDefault(field.toString(), defaultValue);
@@ -125,9 +129,13 @@ public class LogFormatter {
 	}
 
 	public void changeSetting(Field field, boolean visible) {
-		if(prefService == null) return;
-		Map<String, String> settings = prefService.getMap(prefKey);
+		if (skipPersist()) return;
+		Map<String, String> settings = prefService.getMap(LogFormatter.class, prefKey);
 		settings.put(field.toString(), Boolean.toString(visible));
-		prefService.putMap(prefKey, settings);
+		prefService.put(LogFormatter.class, prefKey, settings);
+	}
+
+	private boolean skipPersist() {
+		return prefService == null || prefKey == null || prefKey.isEmpty();
 	}
 }

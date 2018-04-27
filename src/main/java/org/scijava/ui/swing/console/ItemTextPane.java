@@ -33,7 +33,6 @@ package org.scijava.ui.swing.console;
 import java.awt.Font;
 import java.util.Collections;
 import java.util.Iterator;
-import java.util.Objects;
 
 import javax.swing.JComponent;
 import javax.swing.JPopupMenu;
@@ -44,6 +43,8 @@ import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultStyledDocument;
 import javax.swing.text.StyledDocument;
 
+import org.scijava.Context;
+import org.scijava.plugin.Parameter;
 import org.scijava.thread.ThreadService;
 import org.scijava.ui.swing.StaticSwingUtils;
 
@@ -66,8 +67,6 @@ import org.scijava.ui.swing.StaticSwingUtils;
  */
 class ItemTextPane {
 
-	private final ThreadService threadService;
-
 	private DocumentCalculator initialCalculator = null;
 
 	private JTextPane textPane = new JTextPane();
@@ -79,10 +78,13 @@ class ItemTextPane {
 	private DocumentCalculator calculator =
 		new DocumentCalculator(Collections.<Item> emptyList().iterator());
 
+	@Parameter
+	private ThreadService threadService;
+
 	// -- constructor --
 
-	ItemTextPane(ThreadService threadService) {
-		this.threadService = Objects.requireNonNull(threadService);
+	ItemTextPane(final Context context) {
+		context.inject(this);
 		textPane.setEditable(false);
 		textPane.setFont(new Font("monospaced", Font.PLAIN, 12));
 	}
