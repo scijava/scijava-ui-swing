@@ -60,7 +60,11 @@ import org.scijava.ui.console.ConsolePane;
  */
 public class SwingConsolePane extends AbstractConsolePane<JPanel> {
 
-	public static final String LOG_FORMATTING_SETTINGS_KEY = "/log-formatting";
+	/**
+	 * Key to use when when persisting {@link LogFormatter} preferences with the
+	 * {@link PrefService}.
+	 */
+	private static final String LOG_FORMATTING_SETTINGS_KEY = "log-formatting";
 
 	@Parameter
 	private Context context;
