@@ -16,13 +16,11 @@ public class LogFormatterTest {
 
 	@Test
 	public void testSettings() {
-		PrefService prefService = new Context(PrefService.class).service(PrefService.class);
-		LogFormatter formatter1 = new LogFormatter();
-		formatter1.setPrefService(prefService, "/abc");
+		Context context = new Context(PrefService.class);
+		LogFormatter formatter1 = new LogFormatter(context, "abc");
 		formatter1.setVisible(LogFormatter.Field.ATTACHMENT, true);
 		formatter1.setVisible(LogFormatter.Field.LEVEL, false);
-		LogFormatter formatter2 = new LogFormatter();
-		formatter2.setPrefService(prefService, "/abc");
+		LogFormatter formatter2 = new LogFormatter(context, "abc");
 		assertTrue(formatter2.isVisible(LogFormatter.Field.ATTACHMENT));
 		assertFalse(formatter2.isVisible(LogFormatter.Field.LEVEL));
 	}

@@ -1,4 +1,5 @@
 /*
+ * 
  * #%L
  * SciJava UI components for Java Swing.
  * %%
@@ -60,6 +61,9 @@ import org.scijava.ui.console.ConsolePane;
 public class SwingConsolePane extends AbstractConsolePane<JPanel> {
 
 	public static final String LOG_FORMATTING_SETTINGS_KEY = "/log-formatting";
+
+	@Parameter
+	private Context context;
 
 	@Parameter
 	private ThreadService threadService;
@@ -138,8 +142,8 @@ public class SwingConsolePane extends AbstractConsolePane<JPanel> {
 
 	private synchronized void initLoggingPanel() {
 		if (consolePanel != null) return;
-		consolePanel = new ConsolePanel(threadService);
-		loggingPanel = new LoggingPanel(threadService, prefService, LOG_FORMATTING_SETTINGS_KEY);
+		consolePanel = new ConsolePanel(context);
+		loggingPanel = new LoggingPanel(context, LOG_FORMATTING_SETTINGS_KEY);
 		logService.addLogListener(loggingPanel);
 		component = new JPanel(new MigLayout("", "[grow]", "[grow]"));
 		JTabbedPane tabs = new JTabbedPane();

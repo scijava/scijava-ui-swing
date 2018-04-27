@@ -36,8 +36,10 @@ import java.io.StringWriter;
 import java.util.EnumSet;
 import java.util.Map;
 
+import org.scijava.Context;
 import org.scijava.log.LogLevel;
 import org.scijava.log.LogMessage;
+import org.scijava.plugin.Parameter;
 import org.scijava.prefs.PrefService;
 
 /**
@@ -47,12 +49,13 @@ import org.scijava.prefs.PrefService;
  */
 public class LogFormatter {
 
-	private String prefKey = null;
+	private final String prefKey;
 
-	private PrefService prefService = null;
+	@Parameter(required = false)
+	private PrefService prefService;
 
-	public void setPrefService(PrefService prefService, String prefKey) {
-		this.prefService = (prefKey != null && !prefKey.isEmpty()) ? prefService : null;
+	public LogFormatter(final Context context, final String prefKey) {
+		context.inject(this);
 		this.prefKey = prefKey;
 		applySettings();
 	}

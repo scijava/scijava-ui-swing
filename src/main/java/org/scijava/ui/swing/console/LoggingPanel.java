@@ -71,6 +71,7 @@ import org.scijava.log.LogMessage;
 import org.scijava.log.LogService;
 import org.scijava.log.LogSource;
 import org.scijava.log.Logger;
+import org.scijava.plugin.Parameter;
 import org.scijava.prefs.PrefService;
 import org.scijava.thread.ThreadService;
 
@@ -87,7 +88,6 @@ import org.scijava.thread.ThreadService;
 @IgnoreAsCallingClass
 public class LoggingPanel extends JPanel implements LogListener
 {
-
 	private static final AttributeSet STYLE_ERROR = normal(new Color(200, 0, 0));
 	private static final AttributeSet STYLE_WARN = normal(new Color(200, 140, 0));
 	private static final AttributeSet STYLE_INFO = normal(Color.BLACK);
@@ -107,19 +107,26 @@ public class LoggingPanel extends JPanel implements LogListener
 
 	private final Set<LogSource> sources = Collections.newSetFromMap(
 		new ConcurrentHashMap<>());
-	private final LogFormatter logFormatter = new LogFormatter();
+	private final LogFormatter logFormatter;
 
 	private LogRecorder recorder;
 
+	@Parameter
+	private ThreadService threadService;
+
+	@Parameter
+	private PrefService prefService;
+
 	// -- constructor --
 
-	public LoggingPanel(Context context) {
-		this(context.getService(ThreadService.class), null, null);
+	public LoggingPanel(final Context context) {
+		this(context, null);
 	}
 
-	public LoggingPanel(ThreadService threadService, PrefService prefService, String prefKey) {
-		textArea = new ItemTextPane(threadService);
-		logFormatter.setPrefService(prefService, prefKey);
+	public LoggingPanel(final Context context, final String prefKey) {
+		context.inject(this);
+		textArea = new ItemTextPane(context);
+		logFormatter = new LogFormatter(context, prefKey);
 		initGui();
 		setRecorder(new LogRecorder());
 	}
@@ -130,7 +137,7 @@ public class LoggingPanel extends JPanel implements LogListener
 		if (recorder != null) recorder.removeObserver(textArea::update);
 		this.recorder = recorder;
 		updateFilter();
-		recorder.addObservers(textArea::update);
+		if (recorder != null) recorder.addObservers(textArea::update);
 	}
 
 	public void toggleSourcesPanel() {
