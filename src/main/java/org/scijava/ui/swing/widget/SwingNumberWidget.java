@@ -30,7 +30,6 @@
 
 package org.scijava.ui.swing.widget;
 
-import java.awt.Adjustable;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.AdjustmentEvent;
@@ -43,8 +42,10 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.text.DecimalFormat;
 import java.text.ParsePosition;
+import java.util.Hashtable;
 
 import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollBar;
 import javax.swing.JSlider;
@@ -82,8 +83,8 @@ public class SwingNumberWidget extends SwingInputWidget<Number> implements
 	@Parameter
 	private LogService log;
 
-	private JScrollBar scrollBar;
-	private JSlider slider;
+	private CalibratedScrollBar scrollBar;
+	private CalibratedSlider slider;
 	private JSpinner spinner;
 
 	// -- InputWidget methods --
@@ -119,6 +120,9 @@ public class SwingNumberWidget extends SwingInputWidget<Number> implements
 		final SpinnerNumberModel spinnerModel =
 			new SpinnerNumberModelFactory().createModel(value, min, max, stepSize);
 		spinner = new JSpinner(spinnerModel);
+		Dimension spinnerSize = spinner.getSize();
+		spinnerSize.width = 50;
+		spinner.setPreferredSize(spinnerSize);
 		fixSpinner(type);
 		setToolTip(spinner);
 		getComponent().add(spinner);
@@ -141,7 +145,7 @@ public class SwingNumberWidget extends SwingInputWidget<Number> implements
 	@Override
 	public void adjustmentValueChanged(final AdjustmentEvent e) {
 		// sync spinner with scroll bar value
-		final int value = scrollBar.getValue();
+		final Number value = scrollBar.getCalibratedValue();
 		spinner.setValue(value);
 	}
 
@@ -152,7 +156,7 @@ public class SwingNumberWidget extends SwingInputWidget<Number> implements
 		final Object source = e.getSource();
 		if (source == slider) {
 			// sync spinner with slider value
-			final int value = slider.getValue();
+			final Number value = slider.getCalibratedValue();
 			spinner.setValue(value);
 		}
 		else if (source == spinner) {
@@ -166,9 +170,9 @@ public class SwingNumberWidget extends SwingInputWidget<Number> implements
 	
 	@Override
 	public void mouseWheelMoved(final MouseWheelEvent e) {
-		int value = getValue().intValue() + e.getWheelRotation();
-		value = Math.min(value, this.get().getMax().intValue());
-		value = Math.max(value, this.get().getMin().intValue());
+		Number value = getValue().doubleValue() + e.getWheelRotation() * get().getStepSize().doubleValue();
+		value = Math.min(value.doubleValue(), this.get().getMax().doubleValue());
+		value = Math.max(value.doubleValue(), this.get().getMin().doubleValue());
 		spinner.setValue(value);
 		syncSliders();
 	}
@@ -182,14 +186,17 @@ public class SwingNumberWidget extends SwingInputWidget<Number> implements
 			log.warn("Invalid min/max/step; cannot render scroll bar");
 			return;
 		}
-		int mn = min.intValue();
-		if (mn == Integer.MIN_VALUE) mn = Integer.MIN_VALUE + 1;
-		int mx = max.intValue();
-		if (mx < Integer.MAX_VALUE) mx++;
-		final int st = step.intValue();
+		
+		// TODO Integer cases can possibly be handled in a simpler way
+		int sMin = 0;
+		int sMax = (int) ((max.doubleValue() - min.doubleValue()) / step.doubleValue());
+		long range = sMax - sMin;
+		if (range > Integer.MAX_VALUE) {
+			log.warn("Scrollbar span too large; max - min < 2^31 required.");
+			return;
+		}
 
-		scrollBar = new JScrollBar(Adjustable.HORIZONTAL, mn, 1, mn, mx);
-		scrollBar.setUnitIncrement(st);
+		scrollBar = new CalibratedScrollBar(min, max, step);
 		setToolTip(scrollBar);
 		getComponent().add(scrollBar);
 		scrollBar.addAdjustmentListener(this);
@@ -203,26 +210,17 @@ public class SwingNumberWidget extends SwingInputWidget<Number> implements
 			log.warn("Invalid min/max/step; cannot render slider");
 			return;
 		}
-		final int mn = min.intValue();
-		final int mx = max.intValue();
-		final int st = step.intValue();
-		if ((long) mx - mn > Integer.MAX_VALUE) {
+
+		// TODO Integer cases can possibly be handled in a simpler way
+		int sMin = 0;
+		int sMax = (int) ((max.doubleValue() - min.doubleValue()) / step.doubleValue());
+		long range = sMax - sMin;
+		if (range > Integer.MAX_VALUE) {
 			log.warn("Slider span too large; max - min < 2^31 required.");
 			return;
 		}
-		final int span = mx - mn;
 
-		slider = new JSlider(mn, mx, mn);
-
-		// Compute optimal major ticks and labels.
-		final int labelWidth = Math.max(("" + mn).length(), ("" + mx).length());
-		slider.setMajorTickSpacing(labelWidth < 5 ? span / 4 : span);
-		slider.setPaintLabels(labelWidth < 10);
-
-		// Compute optimal minor ticks.
-		final int stepCount = span / st + 1;
-		slider.setMinorTickSpacing(st);
-		slider.setPaintTicks(stepCount < 100);
+		slider = new CalibratedSlider(min, max, step);
 
 		setToolTip(slider);
 		getComponent().add(slider);
@@ -314,20 +312,20 @@ public class SwingNumberWidget extends SwingInputWidget<Number> implements
 	private void syncSliders() {
 		if (slider != null) {
 			// clamp value within slider bounds
-			int value = getValue().intValue();
-			if (value < slider.getMinimum()) value = slider.getMinimum();
-			else if (value > slider.getMaximum()) value = slider.getMaximum();
+			Number value = getValue();
+			if (value.doubleValue() < slider.getCalibratedMinimum().doubleValue()) value = slider.getCalibratedMinimum();
+			else if (value.doubleValue() > slider.getCalibratedMaximum().doubleValue()) value = slider.getCalibratedMaximum();
 			slider.removeChangeListener(this);
-			slider.setValue(value);
+			slider.setCalibratedValue(value);
 			slider.addChangeListener(this);
 		}
 		if (scrollBar != null) {
 			// clamp value within scroll bar bounds
-			int value = getValue().intValue();
-			if (value < scrollBar.getMinimum()) value = scrollBar.getMinimum();
-			else if (value > scrollBar.getMaximum()) value = scrollBar.getMaximum();
+			Number value = getValue();
+			if (value.doubleValue() < scrollBar.getCalibratedMinimum().doubleValue()) value = scrollBar.getCalibratedMinimum();
+			else if (value.doubleValue() > scrollBar.getCalibratedMaximum().doubleValue()) value = scrollBar.getCalibratedMaximum();
 			scrollBar.removeAdjustmentListener(this);
-			scrollBar.setValue(getValue().intValue());
+			scrollBar.setCalibratedValue(value);
 			scrollBar.addAdjustmentListener(this);
 		}
 	}
@@ -339,5 +337,144 @@ public class SwingNumberWidget extends SwingInputWidget<Number> implements
 		final Object value = get().getValue();
 		if (spinner.getValue().equals(value)) return; // no change
 		spinner.setValue(value);
+	}
+	
+	private class CalibratedSlider extends JSlider {
+		
+		private Number min;
+		private Number max;
+		private Number stepSize;
+		
+		private CalibratedSlider(final Number min, final Number max, final Number stepSize) {
+			super();
+			
+			this.min = min;
+			this.max = max;
+			this.stepSize = stepSize;
+
+			int sMin = 0;
+			int sMax = (int) ((max.doubleValue() - min.doubleValue()) / stepSize.doubleValue());
+
+			// Adjust max to be an integer multiple of stepSize
+			this.max = min.doubleValue() + (sMax-sMin) * stepSize.doubleValue();
+
+			setMinimum(sMin);
+			setMaximum(sMax);
+			setValue(sMin);
+
+			// Compute label width to determine number of labels
+			int scale = Math.max(0, new BigDecimal(stepSize.toString()).stripTrailingZeros().scale());
+			JLabel minLabel = makeLabel(min, scale);
+			JLabel maxLabel = makeLabel(max, scale);
+			final int labelWidth = Math.max(minLabel.getText().length(), maxLabel.getText().length());
+
+			// Add labels
+			Hashtable<Integer, JLabel> labelTable = new Hashtable<>(2);
+			labelTable.put(sMin, minLabel);
+			labelTable.put(sMax, maxLabel);
+			if (labelWidth < 5 && sMax % 5 == 0) {
+				// Put four intermediate labels
+				labelTable.put(1 * sMax / 5,
+						makeLabel(toCalibrated(1 * sMax / 5), scale));
+				labelTable.put(2 * sMax / 5,
+						makeLabel(toCalibrated(2 * sMax / 5), scale));
+				labelTable.put(3 * sMax / 5,
+						makeLabel(toCalibrated(3 * sMax / 5), scale));
+				labelTable.put(4 * sMax / 5,
+						makeLabel(toCalibrated(4 * sMax / 5), scale));
+			} else if (labelWidth < 6) {
+				// Put three intermediate labels
+				labelTable.put(1 * sMax / 4,
+						makeLabel(toCalibrated(1 * sMax / 4), scale));
+				labelTable.put(2 * sMax / 4,
+						makeLabel(toCalibrated(2 * sMax / 4), scale));
+				labelTable.put(3 * sMax / 4,
+						makeLabel(toCalibrated(3 * sMax / 4), scale));
+			}
+			setLabelTable(labelTable);
+			setPaintLabels(true);
+			setMinorTickSpacing(1);
+			setPaintTicks(sMax < 100);
+		}
+		
+		private void setCalibratedValue(Number value) {
+			setValue(fromCalibrated(value));
+		}
+
+		private Number getCalibratedValue() {
+			return toCalibrated(getValue());
+		}
+
+		private Number getCalibratedMinimum() {
+			return min;
+		}
+
+		private Number getCalibratedMaximum() {
+			return max;
+		}
+		
+		private int fromCalibrated(Number n) {
+			return (int) Math.round((n.doubleValue() - min.doubleValue()) / stepSize.doubleValue());
+		}
+		
+		private Number toCalibrated(int n) {
+			return n * stepSize.doubleValue() + min.doubleValue();
+		}
+		
+		private JLabel makeLabel(Number n, int scale) {
+			return new JLabel(String.format("%." + scale + "f", n.doubleValue()));
+		}
+
+	}
+
+	private class CalibratedScrollBar extends JScrollBar {
+		
+		private Number min;
+		private Number max;
+		private Number stepSize;
+		
+		private CalibratedScrollBar(final Number min, final Number max, final Number stepSize) {
+			// set extent to 1 to make sure the scroll bar is visible
+			super(HORIZONTAL, 0, 1, 0, 1);
+
+			this.min = min;
+			this.max = max;
+			this.stepSize = stepSize;
+
+			int sMin = 0;
+			int sMax = (int) ((max.doubleValue() - min.doubleValue()) / stepSize.doubleValue()) + 1;
+
+			// Adjust max to be an integer multiple of stepSize
+			this.max = min.doubleValue() + (sMax-sMin) * stepSize.doubleValue();
+
+			setMinimum(sMin);
+			setMaximum(sMax);
+			setValue(sMin);
+		}
+		
+		private void setCalibratedValue(Number value) {
+			setValue(fromCalibrated(value));
+		}
+
+		private Number getCalibratedValue() {
+			return toCalibrated(getValue());
+		}
+
+		private Number getCalibratedMinimum() {
+			return min;
+		}
+
+		private Number getCalibratedMaximum() {
+			return max;
+		}
+		
+		private int fromCalibrated(Number n) {
+			return (int) Math.round((n.doubleValue() - min.doubleValue()) / stepSize.doubleValue());
+		}
+		
+		private Number toCalibrated(int n) {
+			return n * stepSize.doubleValue() + min.doubleValue();
+		}
+		
 	}
 }
