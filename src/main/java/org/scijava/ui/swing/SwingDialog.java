@@ -32,6 +32,7 @@ package org.scijava.ui.swing;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.Container;
 import java.awt.Insets;
 import java.awt.Window;
 import java.awt.event.WindowAdapter;
@@ -203,6 +204,9 @@ public class SwingDialog {
 	public void setModal(final boolean modal) {
 		this.modal = modal;
 		buttons.setVisible(modal);
+
+		// disable the buttons if non-modal, to avoid ENTER closing the dialog.
+		setEnabled(buttons, modal);
 	}
 
 	/** Gets whether the dialog is resizable by the user. */
@@ -351,4 +355,13 @@ public class SwingDialog {
 		});
 	}
 
+	/** Recursively enable or disable components. */
+	private void setEnabled(final Component c, final boolean enabled) {
+		if (c instanceof Container) {
+			for (final Component child : ((Container) c).getComponents()) {
+				setEnabled(child, enabled);
+			}
+		}
+		c.setEnabled(enabled);
+	}
 }
