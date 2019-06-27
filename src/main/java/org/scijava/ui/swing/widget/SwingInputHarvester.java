@@ -33,6 +33,7 @@ package org.scijava.ui.swing.widget;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
+import org.scijava.Disposable;
 import org.scijava.module.Module;
 import org.scijava.module.process.PreprocessorPlugin;
 import org.scijava.plugin.Plugin;
@@ -84,8 +85,28 @@ public class SwingInputHarvester extends
 			new SwingDialog(pane, optionType, messageType, doScrollBars);
 		dialog.setTitle(title);
 		dialog.setModal(modal);
+
+		// TODO: Migrate module disposal logic to Module interface itself.
+		final Disposable disposable;
+		if (module instanceof Disposable) {
+			disposable = (Disposable) module;
+		}
+		else {
+			final Object delegate = module.getDelegateObject();
+			if (delegate instanceof Disposable) {
+				disposable = (Disposable) delegate;
+			}
+			else disposable = null;
+		}
+		if (disposable != null) {
+		dialog.setCloseHandler(() -> disposable.dispose());
+
 		final int rval = dialog.show();
 
+		System.err.println("rval = " + rval);
+		System.err.println("OK = " + JOptionPane.OK_OPTION);
+		System.err.println("Cancel = " + JOptionPane.CANCEL_OPTION);
+		System.err.println("Closed = " + JOptionPane.CLOSED_OPTION);
 		// verify return value of dialog
 		return rval == JOptionPane.OK_OPTION;
 	}

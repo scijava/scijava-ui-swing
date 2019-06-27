@@ -89,6 +89,8 @@ public class SwingDialog {
 
 	private boolean sizeLimited = true;
 
+	private Runnable closeHandler;
+
 	/**
 	 * Creates a dialog box containing the given component.
 	 * <p>
@@ -235,6 +237,10 @@ public class SwingDialog {
 		this.sizeLimited = sizeLimited;
 	}
 
+	public void setCloseHandler(Runnable closeHandler) {
+		this.closeHandler = closeHandler;
+	}
+
 	/**
 	 * Shows the dialog.
 	 * 
@@ -258,6 +264,13 @@ public class SwingDialog {
 		dialog.setResizable(resizable);
 		dialog.setModal(modal);
 		dialog.pack();
+
+		dialog.addWindowListener(new WindowAdapter() {
+			@Override
+			public void windowClosed(final WindowEvent e) {
+				if (closeHandler != null) closeHandler.run();
+			}
+		});
 
 		if (sizeLimited) AWTWindows.ensureSizeReasonable(dialog);
 
