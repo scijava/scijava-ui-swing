@@ -10,7 +10,7 @@
 	</parent>
 
 	<artifactId>scijava-ui-swing</artifactId>
-	<version>0.12.1-SNAPSHOT</version>
+	<version>0.13.0-SNAPSHOT</version>
 
 	<name>SciJava UI: Swing</name>
 	<description>SciJava user interface components for Java Swing.</description>
@@ -63,6 +63,11 @@
 			<name>Jan Eglinger</name>
 			<url>https://imagej.net/User:Eglinger</url>
 			<properties><id>imagejan</id></properties>
+		</contributor>
+		<contributor>
+			<name>Matthias Arzt</name>
+			<url>https://imagej.net/User:Maarzt</url>
+			<properties><id>maarzt</id></properties>
 		</contributor>
 	</contributors>
 
