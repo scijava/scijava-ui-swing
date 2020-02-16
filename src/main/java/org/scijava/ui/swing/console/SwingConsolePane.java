@@ -31,6 +31,7 @@
 package org.scijava.ui.swing.console;
 
 import java.awt.Component;
+import java.lang.reflect.InvocationTargetException;
 
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
@@ -114,13 +115,33 @@ public class SwingConsolePane extends AbstractConsolePane<JPanel> {
 	@Override
 	public void show() {
 		if (window == null || window.isVisible()) return;
-		threadService.queue(new Runnable() {
-
-			@Override
-			public void run() {
-				window.setVisible(true);
+		// HACK: Work around this hang on macOS:
+		// "AWT-EventQueue-0" #14 prio=6 os_prio=31 tid=0x00007fd577a1e800 nid=0x12707 runnable [0x00007000108f5000]
+		//   java.lang.Thread.State: RUNNABLE
+		//   at sun.lwawt.macosx.CWrapper$NSWindow.isKeyWindow(Native Method)
+		//   at sun.lwawt.macosx.CPlatformWindow.lambda$setVisible$9(CPlatformWindow.java:584)
+		//   at sun.lwawt.macosx.CPlatformWindow$$Lambda$71/1309956586.run(Unknown Source)
+		//   at sun.lwawt.macosx.CFRetainedResource.execute(CFRetainedResource.java:134)
+		//   at sun.lwawt.macosx.CPlatformWindow.setVisible(CPlatformWindow.java:576)
+		//   at sun.lwawt.LWWindowPeer.setVisibleImpl(LWWindowPeer.java:249)
+		//   at sun.lwawt.LWComponentPeer.setVisible(LWComponentPeer.java:765)
+		//   at java.awt.Component.show(Component.java:1638)
+		//   - locked <0x00000006c0a6bbe8> (a java.awt.Component$AWTTreeLock)
+		//   at java.awt.Window.show(Window.java:1042)
+		//   at java.awt.Component.show(Component.java:1671)
+		//   at java.awt.Component.setVisible(Component.java:1623)
+		//   at java.awt.Window.setVisible(Window.java:1014)
+		//   at org.scijava.ui.swing.console.SwingConsolePane.lambda$show$0(SwingConsolePane.java:HERE)
+		final Runnable windowSetVisible = () -> window.setVisible(true);
+		if (System.getProperty("os.name").toLowerCase().startsWith("mac")) {
+			try {
+				threadService.invoke(windowSetVisible);
 			}
-		});
+			catch (final InterruptedException | InvocationTargetException exc) {
+				logService.error(exc);
+			}
+		}
+		else threadService.queue(windowSetVisible);
 	}
 
 	// -- UIComponent methods --
