@@ -110,6 +110,7 @@ Wisconsin-Madison.</license.copyrightOwners>
 		<object-inspector.version>0.1</object-inspector.version>
 
 		<miglayout-swing.version>5.2</miglayout-swing.version>
+		<scijava-ui-awt.version>0.1.7</scijava-ui-awt.version>
 	</properties>
 
 	<repositories>
@@ -132,12 +133,6 @@ Wisconsin-Madison.</license.copyrightOwners>
 		<dependency>
 			<groupId>org.scijava</groupId>
 			<artifactId>scijava-ui-awt</artifactId>
-			<exclusions>
-				<exclusion>
-					<groupId>com.miglayout</groupId>
-					<artifactId>miglayout</artifactId>
-				</exclusion>
-			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.scijava</groupId>
