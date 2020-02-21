@@ -29,12 +29,18 @@
 
 package org.scijava.ui.swing.widget;
 
+import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+import javax.swing.DefaultListCellRenderer;
 import javax.swing.JComboBox;
+import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JPanel;
+import javax.swing.ListCellRenderer;
 
+import org.scijava.object.ObjectService;
 import org.scijava.plugin.Plugin;
 import org.scijava.widget.InputWidget;
 import org.scijava.widget.ObjectWidget;
@@ -76,6 +82,7 @@ public class SwingObjectWidget extends SwingInputWidget<Object> implements
 		setToolTip(comboBox);
 		getComponent().add(comboBox);
 		comboBox.addActionListener(this);
+		comboBox.setRenderer(new NamedObjectCellRenderer());
 
 		refreshWidget();
 	}
@@ -96,4 +103,17 @@ public class SwingObjectWidget extends SwingInputWidget<Object> implements
 		comboBox.setSelectedItem(value);
 	}
 
+	private class NamedObjectCellRenderer implements ListCellRenderer<Object> {
+		
+		private DefaultListCellRenderer defaultRenderer = new DefaultListCellRenderer();
+
+		@Override
+		public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected,
+				boolean cellHasFocus) {
+			JLabel renderer = (JLabel) defaultRenderer.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+			renderer.setText(context().service(ObjectService.class).getName(value));
+			renderer.setToolTipText(value.toString());
+			return renderer;
+		}
+	}
 }
