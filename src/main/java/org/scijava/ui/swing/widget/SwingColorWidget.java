@@ -51,6 +51,7 @@ import javax.swing.colorchooser.AbstractColorChooserPanel;
 import org.scijava.plugin.Plugin;
 import org.scijava.ui.awt.AWTColors;
 import org.scijava.util.ColorRGB;
+import org.scijava.util.ColorRGBA;
 import org.scijava.widget.ColorWidget;
 import org.scijava.widget.InputWidget;
 import org.scijava.widget.WidgetModel;
@@ -78,6 +79,7 @@ public class SwingColorWidget extends SwingInputWidget<ColorRGB> implements
 
 	private JButton choose;
 	private Color color;
+	private boolean useAlpha = false;
 
 	// -- ActionListener methods --
 
@@ -94,6 +96,7 @@ public class SwingColorWidget extends SwingInputWidget<ColorRGB> implements
 
 	@Override
 	public ColorRGB getValue() {
+		if(useAlpha) return AWTColors.getColorRGBA(color);
 		return AWTColors.getColorRGB(color);
 	}
 
@@ -212,11 +215,13 @@ public class SwingColorWidget extends SwingInputWidget<ColorRGB> implements
 
 	@Override
 	public void doRefresh() {
+		useAlpha = get().isType(ColorRGBA.class);
 		final ColorRGB value = (ColorRGB) get().getValue();
 		color = AWTColors.getColor(value);
 
+		int imageType = useAlpha ? BufferedImage.TYPE_INT_ARGB : BufferedImage.TYPE_INT_RGB;
 		final BufferedImage image =
-			new BufferedImage(SWATCH_WIDTH, SWATCH_HEIGHT, BufferedImage.TYPE_INT_RGB);
+			new BufferedImage(SWATCH_WIDTH, SWATCH_HEIGHT, imageType);
 		final Graphics g = image.getGraphics();
 		g.setColor(color);
 		g.fillRect(0, 0, image.getWidth(), image.getHeight());
