@@ -49,6 +49,7 @@ import org.scijava.ui.awt.AWTWindowEventDispatcher;
 import org.scijava.ui.swing.AbstractSwingUI;
 import org.scijava.ui.swing.SwingApplicationFrame;
 import org.scijava.ui.swing.SwingUI;
+import org.scijava.ui.swing.console.SwingConsolePane;
 import org.scijava.ui.swing.viewer.SwingDisplayWindow;
 
 /**
@@ -111,12 +112,14 @@ public class SwingSDIUI extends AbstractSwingUI {
 
 	@Override
 	protected void setupConsole() {
+		final SwingConsolePane cPane = getConsolePane();
+		if (cPane == null) return;
 		final JFrame frame = new JFrame("Console");
 		frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-		frame.setContentPane(getConsolePane().getComponent());
+		frame.setContentPane(cPane.getComponent());
 		frame.setJMenuBar(createConsoleMenu());
 		frame.pack();
-		getConsolePane().setWindow(frame);
+		cPane.setWindow(frame);
 	}
 
 }

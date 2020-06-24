@@ -50,6 +50,7 @@ import org.scijava.ui.UserInterface;
 import org.scijava.ui.awt.AWTDropTargetEventDispatcher;
 import org.scijava.ui.swing.AbstractSwingUI;
 import org.scijava.ui.swing.SwingApplicationFrame;
+import org.scijava.ui.swing.console.SwingConsolePane;
 import org.scijava.ui.swing.mdi.viewer.SwingMdiDisplayWindow;
 
 /**
@@ -119,13 +120,15 @@ public class SwingMdiUI extends AbstractSwingUI {
 
 	@Override
 	protected void setupConsole() {
+		final SwingConsolePane cPane = getConsolePane();
+		if (cPane == null) return;
 		final JInternalFrame frame = new JInternalFrame("Console");
 		desktopPane.add(frame);
 		frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-		frame.setContentPane(getConsolePane().getComponent());
+		frame.setContentPane(cPane.getComponent());
 		frame.setJMenuBar(createConsoleMenu());
 		frame.pack();
-		getConsolePane().setWindow(frame);
+		cPane.setWindow(frame);
 	}
 
 	// -- Helper methods --
