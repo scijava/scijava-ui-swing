@@ -69,6 +69,7 @@ import org.scijava.ui.swing.menu.SwingJPopupMenuCreator;
 import org.scijava.ui.viewer.DisplayViewer;
 import org.scijava.widget.FileListWidget;
 import org.scijava.widget.FileWidget;
+import org.scijava.widget.WidgetStyle;
 
 /**
  * Abstract superclass for Swing-based user interfaces.
@@ -141,11 +142,11 @@ public abstract class AbstractSwingUI extends AbstractUserInterface implements
 			// be a deadlock, particularly on macOS. See scijava/scijava-ui-swing#28.
 			threadService.invoke(() -> {
 				final JFileChooser chooser = new JFileChooser(file);
-				if (FileWidget.DIRECTORY_STYLE.equals(style)) {
+				if (WidgetStyle.isStyle(style, FileWidget.DIRECTORY_STYLE)) {
 					chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 				}
 				final int rval;
-				if (FileWidget.SAVE_STYLE.equals(style)) {
+				if (WidgetStyle.isStyle(style, FileWidget.SAVE_STYLE)) {
 					rval = chooser.showSaveDialog(appFrame);
 				}
 				else { // default behavior
@@ -172,10 +173,10 @@ public abstract class AbstractSwingUI extends AbstractUserInterface implements
 			threadService.invoke(() -> {
 				final JFileChooser chooser = new JFileChooser(parent);
 				chooser.setMultiSelectionEnabled(true);
-				if (style.equals(FileListWidget.FILES_AND_DIRECTORIES)) {
+				if (WidgetStyle.isStyle(style, FileListWidget.FILES_AND_DIRECTORIES)) {
 					chooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
 				}
-				else if (style.equals(FileListWidget.DIRECTORIES_ONLY)) {
+				else if (WidgetStyle.isStyle(style, FileListWidget.DIRECTORIES_ONLY)) {
 					chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 				}
 				else {
