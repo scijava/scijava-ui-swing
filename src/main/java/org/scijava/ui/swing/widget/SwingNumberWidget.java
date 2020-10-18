@@ -119,6 +119,10 @@ public class SwingNumberWidget extends SwingInputWidget<Number> implements
 		final SpinnerNumberModel spinnerModel =
 			new SpinnerNumberModelFactory().createModel(value, min, max, stepSize);
 		spinner = new JSpinner(spinnerModel);
+		if (model.isStyle(NumberWidget.FORMAT_8_DIGITS)) {
+			spinner.setEditor(new JSpinner.NumberEditor(spinner, "0.00000000"));
+		}
+
 		Dimension spinnerSize = spinner.getSize();
 		spinnerSize.width = 50;
 		spinner.setPreferredSize(spinnerSize);
