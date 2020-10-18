@@ -119,8 +119,9 @@ public class SwingNumberWidget extends SwingInputWidget<Number> implements
 		final SpinnerNumberModel spinnerModel =
 			new SpinnerNumberModelFactory().createModel(value, min, max, stepSize);
 		spinner = new JSpinner(spinnerModel);
-		if (model.isStyle(NumberWidget.FORMAT_8_DIGITS)) {
-			spinner.setEditor(new JSpinner.NumberEditor(spinner, "0.00000000"));
+		String format = getFormat(model);
+		if (format != null) {
+			spinner.setEditor(new JSpinner.NumberEditor(spinner, format));
 		}
 
 		Dimension spinnerSize = spinner.getSize();
@@ -134,6 +135,17 @@ public class SwingNumberWidget extends SwingInputWidget<Number> implements
 
 		refreshWidget();
 		syncSliders();
+	}
+
+	private String getFormat(WidgetModel model) {
+		final String widgetStyle = model.getItem().getWidgetStyle();
+		String format = null;
+		for (final String s : widgetStyle.split(",")) {
+			if (s.startsWith("format:")) {
+				format = s.substring(s.indexOf(":") + 1).trim();
+			}
+		}
+		return format;
 	}
 
 	// -- Typed methods --
