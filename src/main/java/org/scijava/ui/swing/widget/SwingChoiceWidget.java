@@ -67,7 +67,10 @@ public class SwingChoiceWidget extends SwingInputWidget<String> implements
 
 	@Override
 	public String getValue() {
-		return comboBox.getSelectedItem().toString();
+		if (comboBox.getItemCount() > 0)
+			return comboBox.getSelectedItem().toString();
+		else
+			return null;
 	}
 
 	// -- WrapperPlugin methods --
@@ -97,8 +100,35 @@ public class SwingChoiceWidget extends SwingInputWidget<String> implements
 
 	@Override
 	public void doRefresh() {
-		final Object value = get().getValue();
-		if (value.equals(comboBox.getSelectedItem())) return; // no change
-		comboBox.setSelectedItem(value);
+		final String[] choices = get().getChoices();
+		
+		if (!areListsEqual(choices, comboBoxItems())) {
+			comboBox.removeAllItems();	
+			for (int i=0; i<choices.length; i++)
+				comboBox.addItem(choices[i]);
+		} else {
+			final Object value = get().getValue();
+			if (value.equals(comboBox.getSelectedItem())) return;
+			comboBox.setSelectedItem(value);
+		}
+	}
+	
+	private boolean areListsEqual(String[] list1, String[] list2) {
+		if (list1.length != list2.length)
+			return false;
+		
+		for (int i=0; i< list1.length; i++)
+			if (!list1[i].equals(list2[i]))
+				return false;
+		
+		return true;
+	}
+	
+	private String[] comboBoxItems() {
+		String[] comboItems = new String[comboBox.getItemCount()];
+		for (int i=0; i <comboBox.getItemCount(); i++)
+			comboItems[i] = comboBox.getItemAt(i);
+		
+		return comboItems;
 	}
 }
