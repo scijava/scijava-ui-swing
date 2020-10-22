@@ -31,6 +31,7 @@ package org.scijava.ui.swing.widget;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Arrays;
 
 import javax.swing.JComboBox;
 import javax.swing.JPanel;
@@ -102,7 +103,7 @@ public class SwingChoiceWidget extends SwingInputWidget<String> implements
 	public void doRefresh() {
 		final String[] choices = get().getChoices();
 		
-		if (!areListsEqual(choices, comboBoxItems())) {
+		if (!Arrays.equals(choices, comboBoxItems())) {
 			comboBox.removeAllItems();	
 			for (int i=0; i<choices.length; i++)
 				comboBox.addItem(choices[i]);
@@ -111,17 +112,6 @@ public class SwingChoiceWidget extends SwingInputWidget<String> implements
 			if (value.equals(comboBox.getSelectedItem())) return;
 			comboBox.setSelectedItem(value);
 		}
-	}
-	
-	private boolean areListsEqual(String[] list1, String[] list2) {
-		if (list1.length != list2.length)
-			return false;
-		
-		for (int i=0; i< list1.length; i++)
-			if (!list1[i].equals(list2[i]))
-				return false;
-		
-		return true;
 	}
 	
 	private String[] comboBoxItems() {
