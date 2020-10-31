@@ -107,6 +107,8 @@
 
 		<jdatepicker.version>1.3.2</jdatepicker.version>
 		<object-inspector.version>0.1</object-inspector.version>
+
+		<scijava-common.version>999</scijava-common.version>
 	</properties>
 
 	<repositories>
@@ -144,7 +146,6 @@
 		<dependency>
 			<groupId>com.miglayout</groupId>
 			<artifactId>miglayout-swing</artifactId>
-			<version>${miglayout-swing.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>net.sourceforge.jdatepicker</groupId>
@@ -158,5 +159,14 @@
 			<artifactId>junit</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<!-- NB: inherit the BindingSizes script engine from scijava-common -->
+		<dependency>
+			<groupId>org.scijava</groupId>
+			<artifactId>scijava-common</artifactId>
+			<version>${scijava-common.version}</version>
+			<classifier>tests</classifier>
+			<scope>test</scope>
+		</dependency>
+
 	</dependencies>
 </project>
