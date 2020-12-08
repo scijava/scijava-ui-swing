@@ -29,10 +29,17 @@
 
 package org.scijava.ui.swing.widget;
 
-import javax.swing.JLabel;
+import java.io.IOException;
+
+import javax.swing.JEditorPane;
 import javax.swing.JPanel;
+import javax.swing.event.HyperlinkEvent;
+import javax.swing.event.HyperlinkListener;
 
 import org.scijava.Priority;
+import org.scijava.log.LogService;
+import org.scijava.platform.PlatformService;
+import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.widget.InputWidget;
 import org.scijava.widget.MessageWidget;
@@ -47,8 +54,13 @@ import org.scijava.widget.WidgetModel;
 public class SwingMessageWidget extends SwingInputWidget<String> implements
 	MessageWidget<JPanel>
 {
+	@Parameter
+	private PlatformService platformService;
 
-	private JLabel label;
+	@Parameter
+	private LogService logService;
+
+	private JEditorPane pane;
 
 	// -- InputWidget methods --
 
@@ -76,8 +88,28 @@ public class SwingMessageWidget extends SwingInputWidget<String> implements
 
 		final String text = model.getText();
 
-		label = new JLabel(text);
-		getComponent().add(label);
+		pane = new JEditorPane("text/html", text);
+
+		// NB: use format (font etc.) from parent component
+		pane.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, Boolean.TRUE);
+
+		pane.setEditable(false);
+		pane.setOpaque(false);
+		pane.addHyperlinkListener(new HyperlinkListener() {
+
+			@Override
+			public void hyperlinkUpdate(HyperlinkEvent hle) {
+				if (HyperlinkEvent.EventType.ACTIVATED.equals(hle.getEventType())) {
+					try {
+						platformService.open(hle.getURL());
+					}
+					catch (IOException exc) {
+						logService.error("Error while opening " + hle.getURL(), exc);
+					}
+				}
+			}
+		});
+		getComponent().add(pane);
 	}
 
 	// -- Typed methods --
@@ -92,6 +124,6 @@ public class SwingMessageWidget extends SwingInputWidget<String> implements
 	@Override
 	public void doRefresh() {
 		// maybe dialog owner changed message content
-		label.setText(get().getText());
+		pane.setText(get().getText());
 	}
 }
