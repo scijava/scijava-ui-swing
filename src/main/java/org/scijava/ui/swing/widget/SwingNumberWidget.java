@@ -41,6 +41,8 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.text.DecimalFormat;
 import java.text.ParsePosition;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Hashtable;
 
 import javax.swing.JComponent;
@@ -62,6 +64,7 @@ import org.scijava.thread.ThreadService;
 import org.scijava.widget.InputWidget;
 import org.scijava.widget.NumberWidget;
 import org.scijava.widget.WidgetModel;
+import org.scijava.widget.WidgetStyle;
 
 /**
  * Swing implementation of number chooser widget.
@@ -119,6 +122,12 @@ public class SwingNumberWidget extends SwingInputWidget<Number> implements
 		final SpinnerNumberModel spinnerModel =
 			new SpinnerNumberModelFactory().createModel(value, min, max, stepSize);
 		spinner = new JSpinner(spinnerModel);
+		String format = WidgetStyle.getStyleModifier(model.getItem().getWidgetStyle(), "format");
+		if (format == null) {
+			format = suitableFormat(value, stepSize, min, max);
+		}
+		spinner.setEditor(new JSpinner.NumberEditor(spinner, format));
+
 		Dimension spinnerSize = spinner.getSize();
 		spinnerSize.width = 50;
 		spinner.setPreferredSize(spinnerSize);
@@ -327,6 +336,20 @@ public class SwingNumberWidget extends SwingInputWidget<Number> implements
 			scrollBar.setCalibratedValue(value);
 			scrollBar.addAdjustmentListener(this);
 		}
+	}
+
+	/** Generate a suitable format pattern. */
+	private String suitableFormat(Number... values) {
+		Integer maxScale = Arrays.stream(values)
+				.map(n -> new BigDecimal("" + n.doubleValue()).stripTrailingZeros().scale()).max(Integer::compare)
+				.get();
+		return formatForScale(maxScale);
+	}
+
+	/** Generate a format pattern with sufficient number of decimals. */
+	private String formatForScale(int scale) {
+		if (scale <= 0) return "0";
+		return "0." + String.join("", Collections.nCopies(scale, "0"));
 	}
 
 	// -- AbstractUIInputWidget methods ---
