@@ -1,4 +1,4 @@
-[![](https://travis-ci.org/scijava/scijava-ui-swing.svg?branch=master)](https://travis-ci.org/scijava/scijava-ui-swing)
+[![](https://github.com/scijava/scijava-ui-swing/actions/workflows/build-main.yml/badge.svg)](https://github.com/scijava/scijava-ui-swing/actions/workflows/build-main.yml)
 
 SciJava Swing UI components
 ---------------------------
