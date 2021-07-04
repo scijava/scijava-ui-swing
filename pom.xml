@@ -131,6 +131,11 @@
 		</dependency>
 		<dependency>
 			<groupId>org.scijava</groupId>
+			<artifactId>scijava-plot</artifactId>
+			<version>0.1.2-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>org.scijava</groupId>
 			<artifactId>scijava-ui-awt</artifactId>
 		</dependency>
 		<dependency>
@@ -153,6 +158,15 @@
 			<groupId>net.sourceforge.jdatepicker</groupId>
 			<artifactId>jdatepicker</artifactId>
 			<version>${jdatepicker.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.jfree</groupId>
+			<artifactId>jfreechart</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.jfree</groupId>
+			<artifactId>jfreesvg</artifactId>
+			<version>3.2</version>
 		</dependency>
 
 		<!-- Test scope dependencies -->
