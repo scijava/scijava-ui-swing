@@ -53,6 +53,7 @@ import java.awt.event.MouseEvent;
  * Swing implementation of {@link InputPanel}.
  * 
  * @author Curtis Rueden
+ * @author Karl Duderstadt
  */
 public class SwingInputPanel extends AbstractInputPanel<JPanel, JPanel> {
 
@@ -103,22 +104,13 @@ public class SwingInputPanel extends AbstractInputPanel<JPanel, JPanel> {
 	                */
 	               @Override
 	               public void mousePressed(MouseEvent e) {
-	            	   if (widgetGroups.get(group).size() == 0)
-	            		   return;
-	            	   
-	            	   final boolean visible = label.getText().startsWith("<html><strong>▼");
-	            	   
-            		   widgetGroups.get(group).forEach( comp -> {
-            			   if (visible)
-            			   	comp.setVisible(false);
-            			   else
-            				comp.setVisible(true);
-            		   });
+                       widgetGroupVisible.put(group, !widgetGroupVisible.get(group));
+            		   widgetGroups.get(group).forEach(comp -> comp.setVisible(widgetGroupVisible.get(group)));
 
-                       if(visible)
-                    	   label.setText("<html><strong>▶ " + group + "</strong></html>");
+                       if(widgetGroupVisible.get(group))
+                    	   label.setText("<html><strong>▼ " + group + "</strong></html>");
                        else
-                           label.setText("<html><strong>▼ " + group + "</strong></html>");
+                    	   label.setText("<html><strong>▶ " + group + "</strong></html>");
                        
                        getComponent().revalidate();
 	               }
@@ -171,12 +163,7 @@ public class SwingInputPanel extends AbstractInputPanel<JPanel, JPanel> {
 		
 		//Make sure components have correct starting visibility
 		if (widgetGroups.containsKey(group) && widgetGroupVisible.containsKey(group))
-			widgetGroups.get(group).forEach( comp -> {
-			   if (widgetGroupVisible.get(group))
-			   	comp.setVisible(true);
-			   else
-				comp.setVisible(false);
-			});
+			widgetGroups.get(group).forEach(comp -> comp.setVisible(widgetGroupVisible.get(group)));
 	}
 
 	@Override
