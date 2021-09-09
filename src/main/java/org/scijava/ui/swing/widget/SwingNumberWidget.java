@@ -40,10 +40,12 @@ import java.awt.event.MouseWheelListener;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.text.ParsePosition;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Hashtable;
+import java.util.Locale;
 
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -126,7 +128,10 @@ public class SwingNumberWidget extends SwingInputWidget<Number> implements
 		if (format == null) {
 			format = suitableFormat(value, stepSize, min, max);
 		}
-		spinner.setEditor(new JSpinner.NumberEditor(spinner, format));
+		JSpinner.NumberEditor editor = new JSpinner.NumberEditor(spinner, format);
+		DecimalFormat decimalFormat = editor.getFormat();
+		decimalFormat.setDecimalFormatSymbols(new DecimalFormatSymbols(Locale.US));
+		spinner.setEditor(editor);
 
 		Dimension spinnerSize = spinner.getSize();
 		spinnerSize.width = 50;
