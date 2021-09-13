@@ -31,7 +31,7 @@
 		<developer>
 			<id>ctrueden</id>
 			<name>Curtis Rueden</name>
-			<url>https://imagej.net/User:Rueden</url>
+			<url>https://imagej.net/people/ctrueden</url>
 			<roles>
 				<role>founder</role>
 				<role>lead</role>
@@ -46,27 +46,27 @@
 	<contributors>
 		<contributor>
 			<name>Mark Hiner</name>
-			<url>https://imagej.net/User:Hinerm</url>
+			<url>https://imagej.net/people/hinerm</url>
 			<properties><id>hinerm</id></properties>
 		</contributor>
 		<contributor>
 			<name>Johannes Schindelin</name>
-			<url>https://imagej.net/User:Schindelin</url>
+			<url>https://imagej.net/people/dscho</url>
 			<properties><id>dscho</id></properties>
 		</contributor>
 		<contributor>
 			<name>Stephan Saalfeld</name>
-			<url>https://imagej.net/User:Saalfeld</url>
+			<url>https://imagej.net/people/axtimwalde</url>
 			<properties><id>axtimwalde</id></properties>
 		</contributor>
 		<contributor>
 			<name>Jan Eglinger</name>
-			<url>https://imagej.net/User:Eglinger</url>
+			<url>https://imagej.net/people/imagejan</url>
 			<properties><id>imagejan</id></properties>
 		</contributor>
 		<contributor>
 			<name>Matthias Arzt</name>
-			<url>https://imagej.net/User:Maarzt</url>
+			<url>https://imagej.net/people/maarzt</url>
 			<properties><id>maarzt</id></properties>
 		</contributor>
 	</contributors>
@@ -89,7 +89,7 @@
 	</scm>
 	<issueManagement>
 		<system>GitHub Issues</system>
-		<url>http://github.com/scijava/scijava-ui-swing/issues</url>
+		<url>https://github.com/scijava/scijava-ui-swing/issues</url>
 	</issueManagement>
 	<ciManagement>
 		<system>GitHub Actions</system>
