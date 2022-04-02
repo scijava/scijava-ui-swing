@@ -29,9 +29,25 @@
 
 package org.scijava.ui.swing.viewer.table;
 
+import java.awt.Component;
+import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+import java.awt.event.KeyEvent;
+import java.util.Arrays;
+
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.JComponent;
+import javax.swing.JMenuItem;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.KeyStroke;
 import javax.swing.table.AbstractTableModel;
+import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableColumn;
 
 import org.scijava.table.Table;
 import org.scijava.table.TableDisplay;
@@ -65,9 +81,25 @@ public class SwingTableDisplayPanel extends JScrollPane implements
 		this.window = window;
 		nullModel = new NullTableModel();
 		table = makeTable();
+
 		table.setAutoCreateRowSorter(true);
+		table.setRowSelectionAllowed(true);
+		new TablePopupMenu().install();
+
+		//table.setPreferredScrollableViewportSize(getPreferredSize());
+		addComponentListener(new ComponentAdapter() {
+			@Override
+			public void componentResized(final ComponentEvent e) {
+				if (table.getPreferredSize().width < getWidth()) {
+					table.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
+				} else {
+					table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+				}
+			}
+		});
 		setViewportView(table);
 		window.setContent(this);
+
 	}
 
 	// -- TableDisplayPanel methods --
@@ -133,6 +165,7 @@ public class SwingTableDisplayPanel extends JScrollPane implements
 
 	// -- Helper classes --
 
+	@SuppressWarnings("serial")
 	public static class NullTableModel extends AbstractTableModel {
 
 		@Override
@@ -209,6 +242,14 @@ public class SwingTableDisplayPanel extends JScrollPane implements
 			fireTableCellUpdated(row, col);
 		}
 
+		public void removeRows(int[] indices) {
+			Arrays.sort(indices);
+			for (int i = indices.length - 1; i >= 0; i--) {
+				tab.removeRow(indices[i]);
+				fireTableRowsDeleted(indices[i], indices[i]);
+			}
+		}
+
 		// -- Helper methods --
 
 		private <T> void set(final Table<?, T> table,
@@ -221,4 +262,91 @@ public class SwingTableDisplayPanel extends JScrollPane implements
 
 	}
 
+	@SuppressWarnings("serial")
+	class TablePopupMenu extends JPopupMenu {
+		public TablePopupMenu() {
+			super();
+			JMenuItem mi;
+			mi= new JMenuItem(new ActionMapAction("Copy", table, "copy"));
+			final int MASK = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
+			mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_C, MASK));
+			add(mi);
+			mi = new JMenuItem(new ActionMapAction("Select All", table, "selectAll"));
+			mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_A, MASK));
+			add(mi);
+			addSeparator();
+			mi = new JMenuItem("Delete Selected Row(s)");
+			mi.addActionListener(e -> {
+				final int[] selectedRows = table.getSelectedRows();
+				if (selectedRows.length > 0)
+					((TableModel) table.getModel()).removeRows(selectedRows);
+			});
+			add(mi);
+			mi = new JMenuItem("Resize Column Widths");
+			mi.addActionListener(e -> resizeColumns());
+			add(mi);
+		}
+
+		private void resizeColumns() {
+			// https://stackoverflow.com/a/30355804
+			table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+			table.getTableHeader();
+			for (int column = 0; column < table.getColumnCount(); column++) {
+				final TableColumn tableColumn = table.getColumnModel().getColumn(column);
+				int preferredWidth = Math.max(tableColumn.getMinWidth(), getColumnHeaderWidth(tableColumn, column));
+				final int maxWidth = tableColumn.getMaxWidth();
+				for (int row = 0; row < table.getRowCount(); row++) {
+					final TableCellRenderer cellRenderer = table.getCellRenderer(row, column);
+					final Component c = table.prepareRenderer(cellRenderer, row, column);
+					final int width = c.getPreferredSize().width + table.getIntercellSpacing().width;
+					preferredWidth = Math.max(preferredWidth, width);
+					if (preferredWidth >= maxWidth) {
+						preferredWidth = maxWidth;
+						break;
+					}
+				}
+				tableColumn.setPreferredWidth(preferredWidth);
+			}
+		}
+
+		private int getColumnHeaderWidth(final TableColumn tableColumn, final int column) {
+			final Object value = tableColumn.getHeaderValue();
+			TableCellRenderer renderer = tableColumn.getHeaderRenderer();
+			if (renderer == null) {
+				renderer = table.getTableHeader().getDefaultRenderer();
+			}
+			final Component c = renderer.getTableCellRendererComponent(table, value, false, false, -1, column);
+			return c.getPreferredSize().width;
+		}
+
+		void install() {
+			table.setComponentPopupMenu(this);
+			SwingTableDisplayPanel.this.setComponentPopupMenu(this);
+		}
+
+	}
+
+	@SuppressWarnings("serial")
+	private class ActionMapAction extends AbstractAction {
+
+		private final Action originalAction;
+		private final JComponent component;
+		private final String actionCommand = "";
+
+		ActionMapAction(final String name, final JComponent component, final String actionKey) {
+			super(name);
+			originalAction = component.getActionMap().get(actionKey);
+			if (originalAction == null) {
+				throw new IllegalArgumentException("No Action for action key: " + actionKey);
+			}
+			this.component = component;
+		}
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			e = new ActionEvent(component, ActionEvent.ACTION_PERFORMED, actionCommand, e.getWhen(), e.getModifiers());
+			originalAction.actionPerformed(e);
+		}
+
+	}
 }
