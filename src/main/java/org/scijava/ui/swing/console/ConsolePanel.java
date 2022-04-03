@@ -35,10 +35,13 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontMetrics;
 
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextPane;
+import javax.swing.KeyStroke;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Style;
 import javax.swing.text.StyleConstants;
@@ -109,7 +112,7 @@ public class ConsolePanel extends JPanel implements OutputListener
 		setLayout(new MigLayout("inset 0", "[grow,fill]", "[grow,fill,align top]"));
 
 		textPane = new JTextPane();
-		textPane.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
+		textPane.setFont(new Font(Font.MONOSPACED, Font.PLAIN, textPane.getFont().getSize()));
 		textPane.setEditable(false);
 
 		doc = textPane.getStyledDocument();
@@ -137,9 +140,23 @@ public class ConsolePanel extends JPanel implements OutputListener
 		final int lineHeight = fm.getHeight();
 		scrollPane.getHorizontalScrollBar().setUnitIncrement(charWidth);
 		scrollPane.getVerticalScrollBar().setUnitIncrement(2 * lineHeight);
-
+		textPane.setComponentPopupMenu(initMenu());
 		add(scrollPane);
 	}
+
+	private JPopupMenu initMenu() {
+		final JPopupMenu menu = new JPopupMenu();
+		JMenuItem item = new JMenuItem("Copy");
+		item.setAccelerator(KeyStroke.getKeyStroke("control C"));
+		item.addActionListener( e-> textPane.copy());
+		menu.add(item);
+		item = new JMenuItem("Clear");
+		item.setAccelerator(KeyStroke.getKeyStroke("alt C"));
+		item.addActionListener(e -> clear());
+		menu.add(item);
+		return menu;
+	}
+
 	// -- Helper methods --
 
 	private Style createStyle(final String name, final Style parent,

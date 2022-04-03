@@ -31,8 +31,6 @@ package org.scijava.ui.swing;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
@@ -323,13 +321,7 @@ public abstract class AbstractSwingUI extends AbstractUserInterface implements
 		final JMenu edit = new JMenu("Edit");
 		menuBar.add(edit);
 		final JMenuItem editClear = new JMenuItem("Clear");
-		editClear.addActionListener(new ActionListener() {
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				getConsolePane().clear();
-			}
-		});
+		editClear.addActionListener(e -> getConsolePane().clear());
 		edit.add(editClear);
 		return menuBar;
 	}

@@ -79,7 +79,7 @@ public class SwingTextDisplayPanel extends JScrollPane implements
 		textArea = new JEditorPane();
 		textArea.setPreferredSize(new Dimension(600, 500));
 		textArea.setEditable(false);
-		final Font font = new Font(Font.MONOSPACED, Font.PLAIN, 12);
+		final Font font = new Font(Font.MONOSPACED, Font.PLAIN, textArea.getFont().getSize());
 		textArea.setFont(font);
 		textArea.addHyperlinkListener(this);
 		setViewportView(textArea);
