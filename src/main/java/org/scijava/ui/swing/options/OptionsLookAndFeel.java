@@ -41,6 +41,11 @@ import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
 import javax.swing.UnsupportedLookAndFeelException;
 
+import com.formdev.flatlaf.FlatLightLaf;
+import com.formdev.flatlaf.FlatDarkLaf;
+import com.formdev.flatlaf.FlatIntelliJLaf;
+import com.formdev.flatlaf.FlatDarculaLaf;
+
 import org.scijava.display.Display;
 import org.scijava.display.DisplayService;
 import org.scijava.log.LogService;
@@ -131,8 +136,15 @@ public class OptionsLookAndFeel extends OptionsPlugin {
 
 	protected void initLookAndFeel() {
 		final String lafClass = UIManager.getLookAndFeel().getClass().getName();
+		LookAndFeelInfo[] lookAndFeels = UIManager.getInstalledLookAndFeels();
 
-		final LookAndFeelInfo[] lookAndFeels = UIManager.getInstalledLookAndFeels();
+		// Make UIManager aware of FlatLaf look and feels, as needed
+		if (!isRegistered(lookAndFeels, FlatLightLaf.NAME)) FlatLightLaf.installLafInfo();
+		if (!isRegistered(lookAndFeels, FlatDarkLaf.NAME)) FlatDarkLaf.installLafInfo();
+		if (!isRegistered(lookAndFeels, FlatDarculaLaf.NAME)) FlatDarculaLaf.installLafInfo();
+		if (!isRegistered(lookAndFeels, FlatIntelliJLaf.NAME)) FlatIntelliJLaf.installLafInfo();
+		lookAndFeels = UIManager.getInstalledLookAndFeels(); // retrieve updated list
+
 		final ArrayList<String> lookAndFeelChoices = new ArrayList<>();
 		for (final LookAndFeelInfo lafInfo : lookAndFeels) {
 			final String lafName = lafInfo.getName();
@@ -148,6 +160,15 @@ public class OptionsLookAndFeel extends OptionsPlugin {
 	}
 
 	// -- Helper methods --
+
+	/** Assesses whether lookAndFeels contains the laf associated with lafName*/
+	private boolean isRegistered(final LookAndFeelInfo[] lookAndFeels, final String lafName) {
+		for (final LookAndFeelInfo lafInfo : lookAndFeels) {
+			if (lafInfo.getName().equals(lafName))
+				return true;
+		}
+		return false;
+	}
 
 	/** Tells all known Swing components to change to the new Look &amp; Feel. */
 	private void refreshSwingComponents() {
@@ -200,6 +221,41 @@ public class OptionsLookAndFeel extends OptionsPlugin {
 
 	private DisplayService displayService() {
 		return getContext().service(DisplayService.class);
+	}
+
+	/**
+	 * Sets the application look and feel.
+	 * <p>
+	 * Useful for setting up the look and feel early on in application startup
+	 * routine (e.g., through a macro or script)
+	 * </p>
+	 * 
+	 * @param lookAndFeel the look and feel. Supported values include "FlatLaf
+	 *                    Light", "FlatLaf Dark", "FlatLaf Darcula", "FlatLaf
+	 *                    IntelliJ", and JVM defaults
+	 *                    ("javax.swing.plaf.metal.MetalLookAndFeel", etc.)
+	 */
+	public static void setupLookAndFeel(final String lookAndFeel) {
+		switch (lookAndFeel) {
+		case FlatLightLaf.NAME:
+			FlatLightLaf.setup();
+			return;
+		case FlatDarkLaf.NAME:
+			FlatDarkLaf.setup();
+			return;
+		case FlatDarculaLaf.NAME:
+			FlatDarculaLaf.setup();
+			return;
+		case FlatIntelliJLaf.NAME:
+			FlatIntelliJLaf.setup();
+			return;
+		default:
+			try {
+				UIManager.setLookAndFeel(lookAndFeel);
+			} catch (final Exception ex) {
+				ex.printStackTrace();
+			}
+		}
 	}
 
 	// -- Deprecated methods --
