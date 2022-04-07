@@ -108,6 +108,7 @@
 		<jdatepicker.version>1.3.2</jdatepicker.version>
 		<object-inspector.version>0.1</object-inspector.version>
 		<scijava-plot.version>0.2.0</scijava-plot.version>
+		<jfreesvg.version>3.2</jfreesvg.version>
 	</properties>
 
 	<repositories>
@@ -163,7 +164,7 @@
 		<dependency>
 			<groupId>org.jfree</groupId>
 			<artifactId>jfreesvg</artifactId>
-			<version>3.2</version>
+			<version>${jfreesvg.version}</version>
 		</dependency>
 
 		<!-- Test scope dependencies -->
