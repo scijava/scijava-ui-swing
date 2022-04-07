@@ -5,12 +5,12 @@
 	<parent>
 		<groupId>org.scijava</groupId>
 		<artifactId>pom-scijava</artifactId>
-		<version>31.0.0</version>
+		<version>31.1.0</version>
 		<relativePath />
 	</parent>
 
 	<artifactId>scijava-ui-swing</artifactId>
-	<version>0.13.4-SNAPSHOT</version>
+	<version>0.14.0-SNAPSHOT</version>
 
 	<name>SciJava UI: Swing</name>
 	<description>SciJava user interface components for Java Swing.</description>
@@ -107,6 +107,8 @@
 
 		<jdatepicker.version>1.3.2</jdatepicker.version>
 		<object-inspector.version>0.1</object-inspector.version>
+		<scijava-plot.version>0.2.0</scijava-plot.version>
+		<jfreesvg.version>3.2</jfreesvg.version>
 	</properties>
 
 	<repositories>
@@ -125,6 +127,11 @@
 		<dependency>
 			<groupId>org.scijava</groupId>
 			<artifactId>scijava-table</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.scijava</groupId>
+			<artifactId>scijava-plot</artifactId>
+			<version>${scijava-plot.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.scijava</groupId>
@@ -149,6 +156,15 @@
 			<groupId>net.sourceforge.jdatepicker</groupId>
 			<artifactId>jdatepicker</artifactId>
 			<version>${jdatepicker.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.jfree</groupId>
+			<artifactId>jfreechart</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.jfree</groupId>
+			<artifactId>jfreesvg</artifactId>
+			<version>${jfreesvg.version}</version>
 		</dependency>
 
 		<!-- Test scope dependencies -->
