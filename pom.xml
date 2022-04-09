@@ -69,6 +69,11 @@
 			<url>https://imagej.net/people/maarzt</url>
 			<properties><id>maarzt</id></properties>
 		</contributor>
+		<contributor>
+			<name>Nicolas Chiaruttini</name>
+			<url>https://imagej.net/people/NicoKiaru</url>
+			<properties><id>NicoKiaru</id></properties>
+		</contributor>
 	</contributors>
 
 	<mailingLists>
@@ -109,6 +114,7 @@
 		<object-inspector.version>0.1</object-inspector.version>
 		<scijava-plot.version>0.2.0</scijava-plot.version>
 		<jfreesvg.version>3.2</jfreesvg.version>
+		<scijava-common.version>2.88.0</scijava-common.version>
 	</properties>
 
 	<repositories>
