@@ -75,24 +75,36 @@ import java.util.Set;
 import java.util.TreeMap;
 
 /**
- * A swing component with a circular progress bar displaying the overall progress of all registered
- * {@link Task} created via the {@link org.scijava.task.TaskService}
- *
- * When the user clicks on the circular progress bar, a frame containing a table summarizing each task progression
- * is displayed
- *
- * Each task is rendered in the table with a custom renderer (see {@link TaskRenderer}):
- * First column:
- * - a label with the name of the task and its status
- * - a linear progress bar
- * - if enabled in the constructor, a label with an estimation of the remaining time until task completion,
- * the estimation assumes a constant completion speed since the start of the task registration
- *
+ * A Swing component with a circular progress bar displaying the overall
+ * progress of all registered {@link Task} created via the
+ * {@link org.scijava.task.TaskService}.
+ * <p>
+ * When the user clicks on the circular progress bar, a frame containing a table
+ * summarizing each task progression is displayed.
+ * </p>
+ * <p>
+ * Each task is rendered in the table with a custom renderer (see
+ * {@link TaskRenderer}). First column:
+ * </p>
+ * <ul>
+ * <li>a label with the name of the task and its status</li>
+ * <li>a linear progress bar</li>
+ * <li>if enabled in the constructor, a label with an estimation of the
+ * remaining time until task completion, the estimation assumes a constant
+ * completion speed since the start of the task registration</li>
+ * </ul>
+ * <p>
  * Second column:
- * - a stop icon, clickable and which calls {@link Task#cancel(String)} for the displayed task
- * Before cancellation, a user confirmation dialog can be enabled
- * with {@link SwingTaskMonitorComponent#enableCancelConfirmation()} or disabled with
- * {@link SwingTaskMonitorComponent#disableCancelConfirmation()}
+ * </p>
+ * <ul>
+ * <li>a stop icon, clickable and which calls {@link Task#cancel(String)} for
+ * the displayed task</li>
+ * </ul>
+ * <p>
+ * Before cancellation, a user confirmation dialog can be enabled with
+ * {@link SwingTaskMonitorComponent#enableCancelConfirmation()} or disabled with
+ * {@link SwingTaskMonitorComponent#disableCancelConfirmation()}.
+ * </p>
  *
  * @author Nicolas Chiaruttini, EPFL, 2022
  */
