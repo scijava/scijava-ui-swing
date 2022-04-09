@@ -335,7 +335,7 @@ public class SwingTaskMonitorComponent {
 				previousCompletion.put(task,currentProgression);
 				totalProgression+=currentProgression;
 			}
-			globalProgression = totalProgression/(double) totalTasks;
+			globalProgression = totalProgression / totalTasks;
 		}
 
 		void removeTask(Task task) {
@@ -351,7 +351,7 @@ public class SwingTaskMonitorComponent {
 				if(totalTasks==0) {
 					globalProgression = 0;
 				} else {
-					globalProgression = totalProgression/(double)totalTasks;
+					globalProgression = totalProgression / totalTasks;
 				}
 				if (estimateTimeLeft) startTime.remove(task);
 			}
@@ -361,18 +361,18 @@ public class SwingTaskMonitorComponent {
 			if (tasksSet.contains(task)) {
 				if (task.getProgressMaximum() == 0) {
 					return "? remaining";
-				} else {
-					Instant now = Instant.now();
-					Duration elapsedTime = Duration.between(startTime.get(task), now);
-					double completion = previousCompletion.get(task);
-					if (completion==0) return "? remaining";
-					double elapsedTimeInS = elapsedTime.getSeconds();
-					double totalTimeInS = elapsedTime.getSeconds()*1.0/completion;
-					double remainingTimeInS = totalTimeInS-elapsedTimeInS;
-					Duration duration = Duration.ofSeconds((long)remainingTimeInS);
-					return humanReadableFormat(duration)+" remaining";
 				}
-			} else return "";
+				Instant now = Instant.now();
+				Duration elapsedTime = Duration.between(startTime.get(task), now);
+				double completion = previousCompletion.get(task);
+				if (completion==0) return "? remaining";
+				double elapsedTimeInS = elapsedTime.getSeconds();
+				double totalTimeInS = elapsedTime.getSeconds()*1.0/completion;
+				double remainingTimeInS = totalTimeInS-elapsedTimeInS;
+				Duration duration = Duration.ofSeconds((long)remainingTimeInS);
+				return humanReadableFormat(duration)+" remaining";
+			}
+			return "";
 		}
 
 		@Override
@@ -423,7 +423,8 @@ public class SwingTaskMonitorComponent {
 		public Task getTask(int rowIndex) {
 			if (rowIndex<monitoredTasks.size()) {
 				return monitoredTasks.get(rowIndex);
-			} else return null;
+			}
+			return null;
 		}
 	}
 
@@ -495,38 +496,38 @@ public class SwingTaskMonitorComponent {
 			cell.add(labelTop,"height ::14, span");
 			cell.add(progressBar,"height ::3, span");
 			cell.add(labelBottom, "height ::14");
-			cancelTask = new JLabel(errorIcon, JLabel.CENTER);
+			cancelTask = new JLabel(errorIcon, SwingConstants.CENTER);
 			cancelTask.setOpaque(true);
 			cancelTask.setBackground(cell.getBackground());
 		}
 
+		@Override
 		public Component getTableCellRendererComponent(
 			JTable table, Object tk,
 			boolean isSelected, boolean hasFocus,
 			int row, int column) {
 			if (column==1) {
 				return cancelTask; // second column : stop icon
-			} else {
-				// first column : task information
-				Task task = (Task) tk;
-				String status = task.getStatusMessage();
-				labelTop.setText(task.getName() + " " + ((status != null) ? status : ""));
-				if (estimateTimeLeft) {
-					labelBottom.setText(format(task.getProgressValue()) + "/" + format(task.getProgressMaximum()) + " - " + taskTableModel.getEstimateTimeMessage(task));
-				} else {
-					labelBottom.setText(format(task.getProgressValue()) + "/" + format(task.getProgressMaximum()));
-				}
-				if (task.getProgressMaximum() == 0) {
-					progressBar.setMaximum(100);
-					progressBar.setValue(50);
-				} else {
-					int progress = (int) ((100 * task.getProgressValue()) / task.getProgressMaximum());
-					progressBar.setMaximum(100);
-					progressBar.setValue(progress);
-				}
-				cell.setToolTipText(task.getStatusMessage()); // tool tip text = current task status
-				return cell;
 			}
+			// first column : task information
+			Task task = (Task) tk;
+			String status = task.getStatusMessage();
+			labelTop.setText(task.getName() + " " + ((status != null) ? status : ""));
+			if (estimateTimeLeft) {
+				labelBottom.setText(format(task.getProgressValue()) + "/" + format(task.getProgressMaximum()) + " - " + taskTableModel.getEstimateTimeMessage(task));
+			} else {
+				labelBottom.setText(format(task.getProgressValue()) + "/" + format(task.getProgressMaximum()));
+			}
+			if (task.getProgressMaximum() == 0) {
+				progressBar.setMaximum(100);
+				progressBar.setValue(50);
+			} else {
+				int progress = (int) ((100 * task.getProgressValue()) / task.getProgressMaximum());
+				progressBar.setMaximum(100);
+				progressBar.setValue(progress);
+			}
+			cell.setToolTipText(task.getStatusMessage()); // tool tip text = current task status
+			return cell;
 		}
 
 	}
