@@ -111,25 +111,55 @@ import java.util.TreeMap;
 
 public class SwingTaskMonitorComponent {
 
-	private final JProgressBar globalProgressBar; // progress bar showing the global progression ( = progression of all tasks ). Clicking it toggles taskFrame visibility
+	/**
+	 * Progress bar showing the global progression ( = progression of all tasks ).
+	 * Clicking it toggles taskFrame visibility.
+	 */
+	private final JProgressBar globalProgressBar;
 	private final int sizeGlobalProgressBar;
 
-	private final JFrame taskFrame; // a container for the taskTable, visibility toggled by clickable globalProgressBar
-	private final JTable taskTable; // JTable rendering each monitored task, contained in the taskFrame
-	private final TaskTableModel taskTableModel; // model of the taskTable
-
-	private final Boolean estimateTimeLeft; // flags whether each task should be timed
-	private Boolean confirmBeforeCancel; // flags whether the user should confirm when a task is clicked to be canceled. not final because this behaviour can be changed
-
-	private double globalProgression = 0; // store temporarily the current global progression - all tasks have an equal weight
+	/**
+	 * A container for the {@link #taskTable}, visibility toggled by clickable
+	 * {@link #globalProgressBar}.
+	 */
+	private final JFrame taskFrame;
 
 	/**
-	 * Construct a Swing Task Monitor component - clickable circular progress bar
-	 * the component can be accessed with {@link SwingTaskMonitorComponent#getComponent()}
+	 * {@link JTable} rendering each monitored task, contained in the
+	 * {@link #taskFrame}.
+	 */
+	private final JTable taskTable;
+
+	/** Model of the {@link #taskTable}. */
+	private final TaskTableModel taskTableModel;
+
+	/** Flags whether each task should be timed. */
+	private final Boolean estimateTimeLeft;
+
+	/**
+	 * Flags whether the user should confirm when a task is clicked to be
+	 * canceled. not final because this behaviour can be changed.
+	 */
+	private Boolean confirmBeforeCancel;
+
+	/**
+	 * Stores temporarily the current global progression - all tasks have an equal
+	 * weight.
+	 */
+	private double globalProgression = 0;
+
+	/**
+	 * Constructs a Swing Task Monitor component - clickable circular progress bar
+	 * the component can be accessed with
+	 * {@link SwingTaskMonitorComponent#getComponent()}.
 	 *
-	 * @param context scijava context
-	 * @param estimateTimeLeft whether registered tasks should display an estimated remaining time
-	 * @param confirmBeforeCancel flags whether a confirmation window should popup when cancelling a task, can be overridden with {@link SwingTaskMonitorComponent#disableCancelConfirmation()} and {@link SwingTaskMonitorComponent#enableCancelConfirmation()}
+	 * @param context SciJava context
+	 * @param estimateTimeLeft whether registered tasks should display an
+	 *          estimated remaining time
+	 * @param confirmBeforeCancel flags whether a confirmation window should pop up
+	 *          when canceling a task, can be overridden with
+	 *          {@link SwingTaskMonitorComponent#disableCancelConfirmation()} and
+	 *          {@link SwingTaskMonitorComponent#enableCancelConfirmation()}
 	 * @param size of the circular progress bar (preferred size)
 	 * @param undecorated defines whether taskFrame is undecorated or not
 	 */
@@ -182,7 +212,8 @@ public class SwingTaskMonitorComponent {
 		taskTable.setRowHeight(65);
 		taskTable.setRowMargin(2);
 		taskTable.setDefaultRenderer(Task.class, new TaskRenderer(false));
-		taskTable.getColumnModel().getColumn(1).setMaxWidth(30); // restrict size of second column to the size of the stop icon
+		// restrict size of second column to the size of the stop icon
+		taskTable.getColumnModel().getColumn(1).setMaxWidth(30);
 
 		// Scroll pane containing the JTable -> necessary when many tasks are displayed
 		JScrollPane scrollPane = new JScrollPane(taskTable);
@@ -233,27 +264,29 @@ public class SwingTaskMonitorComponent {
 		} else {
 			taskTableModel.addOrUpdate(task);
 		}
-		globalProgressBar.setValue((int)(globalProgression*100)); // globalProgression has been updated during taskTableModel update
+		// globalProgression has been updated during taskTableModel update
+		globalProgressBar.setValue((int)(globalProgression*100));
 	}
 
 	/**
-	 * User confirmation required when cancelling a task by clicking the task table
+	 * User confirmation required when canceling a task by clicking the task table.
 	 */
 	public void enableCancelConfirmation() {
 		this.confirmBeforeCancel = true;
 	}
 
 	/**
-	 * NO user confirmation required when cancelling a task by clicking the task table
+	 * NO user confirmation required when canceling a task by clicking the task table.
 	 */
 	public void disableCancelConfirmation() {
 		this.confirmBeforeCancel = false;
 	}
 
-	/*
-	 * Task Table Model, serves to update the table according to the events received. Note
-	 * that nothing is synchronized because every call is expected to happen from the
-	 * event dispatch thread. It is thus single threaded, no race condition expected.
+	/**
+	 * Task Table Model, serves to update the table according to the events
+	 * received. Note that nothing is synchronized because every call is expected
+	 * to happen from the event dispatch thread. It is thus single threaded, no
+	 * race condition expected.
 	 */
 	class TaskTableModel extends AbstractTableModel {
 
@@ -261,10 +294,21 @@ public class SwingTaskMonitorComponent {
 			super();
 		}
 
-		private List<Task> monitoredTasks = new ArrayList<>(); // indexed tasks
-		private Set<Task> tasksSet = new HashSet<>(); // unordered tasks -> faster task lookup (may be overkill)
-		private Map<Task,Double> previousCompletion = new HashMap<>(); // store the previous completion state of a certain task, before it was updated
-		private Map<Task, Instant> startTime = new HashMap<>(); // Start time -> stores when a task was added to this table model
+		/** Indexed tasks. */
+		private List<Task> monitoredTasks = new ArrayList<>();
+
+		/** Unordered tasks &rarr; faster task lookup (may be overkill). */
+		private Set<Task> tasksSet = new HashSet<>();
+
+		/**
+		 * Store the previous completion state of a certain task, before it was
+		 * updated.
+		 */
+		private Map<Task,Double> previousCompletion = new HashMap<>();
+
+		/** Start time -> stores when a task was added to this table model. */
+		private Map<Task, Instant> startTime = new HashMap<>();
+
 		int totalTasks = 0;
 		double totalProgression = 0;
 
@@ -384,7 +428,7 @@ public class SwingTaskMonitorComponent {
 	}
 
 	/*
-	 * // From https://java-swing-tips.blogspot.com/2014/06/how-to-create-circular-progress.html
+	 * From https://java-swing-tips.blogspot.com/2014/06/how-to-create-circular-progress.html
 	 * UI for circular progress bar
 	 */
 	static class ProgressCircleUI extends BasicProgressBarUI {
@@ -437,7 +481,7 @@ public class SwingTaskMonitorComponent {
 		JLabel labelTop = new JLabel(); // top label : task name and status
 		JProgressBar progressBar = new JProgressBar(); // standard linear progress bar
 		JLabel labelBottom = new JLabel(); // bottom label : task completion, and optionally time left
-		Icon errorIcon = UIManager.getIcon("OptionPane.errorIcon"); // icon for cancelling task
+		Icon errorIcon = UIManager.getIcon("OptionPane.errorIcon"); // icon for canceling task
 		JLabel cancelTask; // container for errorIcon
 
 		public TaskRenderer(boolean isBordered) {
