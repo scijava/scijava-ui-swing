@@ -29,8 +29,7 @@
 
 package org.scijava.ui.swing;
 
-import java.awt.BorderLayout;
-
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
@@ -47,6 +46,10 @@ import org.scijava.ui.DialogPrompt.MessageType;
 import org.scijava.ui.StatusBar;
 import org.scijava.ui.UIService;
 import org.scijava.ui.awt.AWTInputEventDispatcher;
+import org.scijava.ui.swing.task.SwingTaskMonitorComponent;
+
+import java.awt.BorderLayout;
+import java.awt.Dimension;
 
 /**
  * Swing implementation of {@link StatusBar}.
@@ -72,14 +75,17 @@ public class SwingStatusBar extends JPanel implements StatusBar {
 
 	public SwingStatusBar(final Context context) {
 		context.inject(this);
-
 		statusText = new JLabel(appService.getApp().getInfo(false));
 		statusText.setBorder(new BevelBorder(BevelBorder.LOWERED));
 		progressBar = new JProgressBar();
 		progressBar.setVisible(false);
 		setLayout(new BorderLayout());
 		add(statusText, BorderLayout.CENTER);
-		add(progressBar, BorderLayout.EAST);
+		add(progressBar, BorderLayout.WEST);
+		JComponent progress = new SwingTaskMonitorComponent(context, true, true,300, false).getComponent();
+		int h = getPreferredSize().height;
+		progress.setPreferredSize(new Dimension(h,h));
+		add(progress, BorderLayout.EAST);
 	}
 
 	// -- SwingStatusBar methods --
