@@ -238,6 +238,8 @@ public class SwingTaskMonitorComponent {
 							if (userconfirmation == JOptionPane.YES_OPTION) {
 								selectedTask.cancel("User cancellation (table task)");
 							}
+						} else {
+							selectedTask.cancel("User cancellation (table task)");
 						}
 					}
 				}
