@@ -341,7 +341,7 @@ public class SwingNumberWidget extends SwingInputWidget<Number> implements
 	/** Generate a suitable format pattern. */
 	private String suitableFormat(Number... values) {
 		Integer maxScale = Arrays.stream(values)
-				.map(n -> new BigDecimal("" + n.doubleValue()).stripTrailingZeros().scale()).max(Integer::compare)
+				.map(n -> new BigDecimal("" + (n == null ? 0.0 : n.doubleValue())).stripTrailingZeros().scale()).max(Integer::compare)
 				.get();
 		return formatForScale(maxScale);
 	}
