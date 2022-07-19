@@ -109,7 +109,8 @@ public class SwingNumberWidgetTest {
 				"1.000",
 				"1.0000",
 				"1.000",
-				"1.0000"
+				"1.0000",
+				"0"
 		};
 	}
 
@@ -135,6 +136,9 @@ public class SwingNumberWidgetTest {
 				"#@ Double (value=1, min=0, max=10, stepSize=0.001, persist=false, style=\"slider,format:0.0000\") n\n" + 
 				"#@ Double (value=1, min=0, max=10, stepSize=0.001, persist=false, style=\"scroll bar\") o\n" + 
 				"#@ Double (value=1, min=0, max=10, stepSize=0.001, persist=false, style=\"scroll bar,format:0.0000\") p\n" + 
+				"\n" + 
+				"// BigInteger without min, max, stepSize\n" + 
+				"#@ BigInteger (persist=false) q\n" + 
 				"";
 		return script;
 	}
