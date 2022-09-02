@@ -85,7 +85,7 @@ class ItemTextPane {
 	ItemTextPane(final Context context) {
 		context.inject(this);
 		textPane.setEditable(false);
-		textPane.setFont(new Font("monospaced", Font.PLAIN, 12));
+		textPane.setFont(new Font(Font.MONOSPACED, Font.PLAIN, textPane.getFont().getSize()));
 	}
 
 	// -- ItemTextPane methods --
