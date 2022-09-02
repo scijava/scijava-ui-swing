@@ -10,7 +10,7 @@
 	</parent>
 
 	<artifactId>scijava-ui-swing</artifactId>
-	<version>0.16.1-SNAPSHOT</version>
+	<version>0.16.1</version>
 
 	<name>SciJava UI: Swing</name>
 	<description>SciJava user interface components for Java Swing.</description>
@@ -89,7 +89,7 @@
 	<scm>
 		<connection>scm:git:https://github.com/scijava/scijava-ui-swing</connection>
 		<developerConnection>scm:git:git@github.com:scijava/scijava-ui-swing</developerConnection>
-		<tag>HEAD</tag>
+		<tag>scijava-ui-swing-0.16.1</tag>
 		<url>https://github.com/scijava/scijava-ui-swing</url>
 	</scm>
 	<issueManagement>
