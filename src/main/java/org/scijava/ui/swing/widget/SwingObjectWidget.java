@@ -96,8 +96,8 @@ public class SwingObjectWidget extends SwingInputWidget<Object> implements
 
 	@Override
 	public boolean supports(final WidgetModel model) {
-		return super.supports(model) && (model.getChoices() != null ||
-			(model.getObjectPool() != null && model.getObjectPool().size() > 0));
+		return super.supports(model) && ((model.getChoices() != null && model.getChoices().length>0) ||
+			((model.getObjectPool() != null) && (model.getObjectPool().size() > 0)));
 	}
 
 	// -- AbstractUIInputWidget methods ---
