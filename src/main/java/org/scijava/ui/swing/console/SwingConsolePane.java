@@ -148,7 +148,7 @@ public class SwingConsolePane extends AbstractConsolePane<JPanel> {
 		consolePanel = new ConsolePanel(context);
 		loggingPanel = new LoggingPanel(context, LOG_FORMATTING_SETTINGS_KEY);
 		logService.addLogListener(loggingPanel);
-		component = new JPanel(new MigLayout("", "[grow]", "[grow]"));
+		component = new JPanel(new MigLayout("insets 0", "[grow]", "[grow]"));
 		JTabbedPane tabs = new JTabbedPane();
 		tabs.addTab("Console", consolePanel);
 		tabs.addTab("Log", loggingPanel);

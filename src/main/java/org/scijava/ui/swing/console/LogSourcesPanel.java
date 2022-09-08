@@ -146,22 +146,22 @@ class LogSourcesPanel extends JPanel {
 	}
 
 	private JButton initVisibilityButton() {
-		JButton button = new JButton("visibility");
+		JButton button = new JButton("Visibility");
 		button.addActionListener(a -> menu.show(button, 0, button.getHeight()));
 		return button;
 	}
 
 	private void initMenu() {
 		EnumSet<Level> levels = EnumSet.range(Level.ERROR, Level.TRACE);
-		addMenuItemPerLevel(EnumSet.of(Level.TRACE), level -> "show all",
+		addMenuItemPerLevel(EnumSet.of(Level.TRACE), level -> "Show all",
 			this::onShowErrorUpToClicked);
-		addMenuItemPerLevel(EnumSet.of(Level.NONE), level -> "hide all",
+		addMenuItemPerLevel(EnumSet.of(Level.NONE), level -> "Hide all",
 			this::onShowNoneClicked);
 		menu.addSeparator();
-		addMenuItemPerLevel(levels, level -> "show " + level.toString(),
+		addMenuItemPerLevel(levels, level -> "Show " + level.toString(),
 			this::onShowLogLevelClicked);
 		menu.addSeparator();
-		addMenuItemPerLevel(levels, level -> "hide " + level.toString(),
+		addMenuItemPerLevel(levels, level -> "Hide " + level.toString(),
 			this::onHideLogLevelClicked);
 		menu.addSeparator();
 		addMenuItemPerLevel(levels, LogSourcesPanel::listLevelsErrorTo,

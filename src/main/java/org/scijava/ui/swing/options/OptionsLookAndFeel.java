@@ -44,6 +44,7 @@ import javax.swing.UnsupportedLookAndFeelException;
 import com.formdev.flatlaf.FlatLightLaf;
 import com.formdev.flatlaf.FlatDarkLaf;
 import com.formdev.flatlaf.FlatIntelliJLaf;
+import com.formdev.flatlaf.FlatLaf;
 import com.formdev.flatlaf.FlatDarculaLaf;
 
 import org.scijava.display.Display;
@@ -236,24 +237,26 @@ public class OptionsLookAndFeel extends OptionsPlugin {
 	 *                    ("javax.swing.plaf.metal.MetalLookAndFeel", etc.)
 	 */
 	public static void setupLookAndFeel(final String lookAndFeel) {
-		switch (lookAndFeel) {
+		switch (lookAndFeel) { // FIXME: should FlatLaf.updateUI() calls be replaced with updateUILater()?
 		case FlatLightLaf.NAME:
-			FlatLightLaf.setup();
+			if (FlatLightLaf.setup()) FlatLightLaf.updateUI();
 			return;
 		case FlatDarkLaf.NAME:
-			FlatDarkLaf.setup();
+			if (FlatDarkLaf.setup()) FlatDarkLaf.updateUI();
 			return;
 		case FlatDarculaLaf.NAME:
-			FlatDarculaLaf.setup();
+			if (FlatDarculaLaf.setup()) FlatDarculaLaf.updateUI();
 			return;
 		case FlatIntelliJLaf.NAME:
-			FlatIntelliJLaf.setup();
+			if (FlatIntelliJLaf.setup()) FlatIntelliJLaf.updateUI();
 			return;
 		default:
 			try {
 				UIManager.setLookAndFeel(lookAndFeel);
+				FlatLaf.updateUI();
 			} catch (final Exception ex) {
 				ex.printStackTrace();
+				FlatLaf.revalidateAndRepaintAllFramesAndDialogs(); // Recover from possible ill-states
 			}
 		}
 	}

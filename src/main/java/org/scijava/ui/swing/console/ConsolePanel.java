@@ -41,7 +41,7 @@ import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextPane;
-import javax.swing.KeyStroke;
+import javax.swing.UIManager;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Style;
 import javax.swing.text.StyleConstants;
@@ -117,12 +117,12 @@ public class ConsolePanel extends JPanel implements OutputListener
 
 		doc = textPane.getStyledDocument();
 
-		stdoutLocal = createStyle("stdoutLocal", null, Color.black, null, null);
-		stderrLocal = createStyle("stderrLocal", null, Color.red, null, null);
+		stdoutLocal = createStyle("stdoutLocal", null, defaultFontColor(), null, null);
+		stderrLocal = createStyle("stderrLocal", null, Color.RED, null, null);
 		stdoutGlobal = createStyle("stdoutGlobal", stdoutLocal, null, null, true);
 		stderrGlobal = createStyle("stderrGlobal", stderrLocal, null, null, true);
 
-		// NB: We wrap the JTextPane in a JPanel to disable
+		// NB: We wrap the JTextPane in a JPanel to disable 
 		// the text pane's intelligent line wrapping behavior.
 		// I.e.: we want console lines _not_ to wrap, but instead
 		// for the scroll pane to show a horizontal scroll bar.
@@ -147,17 +147,30 @@ public class ConsolePanel extends JPanel implements OutputListener
 	private JPopupMenu initMenu() {
 		final JPopupMenu menu = new JPopupMenu();
 		JMenuItem item = new JMenuItem("Copy");
-		item.setAccelerator(KeyStroke.getKeyStroke("control C"));
-		item.addActionListener( e-> textPane.copy());
+		item.addActionListener(e -> textPane.copy());
 		menu.add(item);
 		item = new JMenuItem("Clear");
-		item.setAccelerator(KeyStroke.getKeyStroke("alt C"));
 		item.addActionListener(e -> clear());
+		menu.add(item);
+		item = new JMenuItem("Select All");
+		item.addActionListener(e -> textPane.selectAll());
 		menu.add(item);
 		return menu;
 	}
 
+	@Override
+	public void updateUI() {
+		if (stdoutLocal != null)
+			StyleConstants.setForeground(stdoutLocal, defaultFontColor());
+		super.updateUI();
+	}
+
 	// -- Helper methods --
+
+	private static Color defaultFontColor() {
+		final Color color = UIManager.getColor("TextPane.foreground");
+		return (color == null) ? Color.BLACK : color;
+	}
 
 	private Style createStyle(final String name, final Style parent,
 							  final Color foreground, final Boolean bold, final Boolean italic)
