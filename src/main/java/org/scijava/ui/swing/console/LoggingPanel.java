@@ -49,12 +49,10 @@ import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
-import javax.swing.JSeparator;
 import javax.swing.JSplitPane;
 import javax.swing.JTextPane;
 import javax.swing.KeyStroke;
-import javax.swing.SwingConstants;
-import javax.swing.plaf.basic.BasicArrowButton;
+import javax.swing.UIManager;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.MutableAttributeSet;
 import javax.swing.text.SimpleAttributeSet;
@@ -89,7 +87,7 @@ public class LoggingPanel extends JPanel implements LogListener
 {
 	private static final AttributeSet STYLE_ERROR = normal(new Color(200, 0, 0));
 	private static final AttributeSet STYLE_WARN = normal(new Color(200, 140, 0));
-	private static final AttributeSet STYLE_INFO = normal(Color.BLACK);
+	private static final AttributeSet STYLE_INFO = normal(defaultInfoColor());
 	private static final AttributeSet STYLE_DEBUG = normal(new Color(0, 0, 200));
 	private static final AttributeSet STYLE_TRACE = normal(Color.GRAY);
 	private static final AttributeSet STYLE_OTHERS = normal(Color.GRAY);
@@ -173,6 +171,12 @@ public class LoggingPanel extends JPanel implements LogListener
 		updateFilter();
 	}
 
+	@Override
+	public void updateUI() {
+		StyleConstants.setForeground((MutableAttributeSet) STYLE_INFO, defaultInfoColor());
+		super.updateUI();
+	}
+
 	// -- LogListener methods --
 
 	@Override
@@ -183,12 +187,17 @@ public class LoggingPanel extends JPanel implements LogListener
 
 	// -- Helper methods --
 
+	private static Color defaultInfoColor() {
+		final Color color = UIManager.getColor("TextPane.foreground");
+		return (color == null) ? Color.BLACK : color;
+	}
+
 	private void initGui() {
 		textFilter.setChangeListener(this::updateFilter);
 
 		JPopupMenu menu = initMenu();
 
-		JButton menuButton = new BasicArrowButton(SwingConstants.SOUTH);
+		JButton menuButton = new JButton("\u22EE");
 		menuButton.addActionListener(a ->
 			menu.show(menuButton, 0, menuButton.getHeight()));
 
@@ -216,7 +225,7 @@ public class LoggingPanel extends JPanel implements LogListener
 	}
 
 	private LogSourcesPanel initSourcesPanel() {
-		JButton reloadButton = new JButton("reload");
+		JButton reloadButton = new JButton("Reload");
 		reloadButton.addActionListener(actionEvent -> reloadSources());
 		return new LogSourcesPanel(reloadButton);
 	}
@@ -254,12 +263,12 @@ public class LoggingPanel extends JPanel implements LogListener
 
 	private JMenu initSettingsMenu() {
 		JMenu menu = new JMenu("Settings");
-		menu.add(checkboxItem(LogFormatter.Field.TIME, "show time stamp"));
-		menu.add(checkboxItem(LogFormatter.Field.SOURCE, "show log source"));
-		menu.add(checkboxItem(LogFormatter.Field.LEVEL, "show log level"));
-		menu.add(checkboxItem(LogFormatter.Field.THROWABLE, "show exception"));
-		menu.add(checkboxItem(LogFormatter.Field.ATTACHMENT, "show attached data"));
-		menu.add(new JSeparator());
+		menu.add(checkboxItem(LogFormatter.Field.TIME, "Show time stamp"));
+		menu.add(checkboxItem(LogFormatter.Field.SOURCE, "Show log source"));
+		menu.add(checkboxItem(LogFormatter.Field.LEVEL, "Show log level"));
+		menu.add(checkboxItem(LogFormatter.Field.THROWABLE, "Show exception"));
+		menu.add(checkboxItem(LogFormatter.Field.ATTACHMENT, "Show attached data"));
+		menu.addSeparator();
 		menu.add(recordCallingClassMenuItem());
 		return menu;
 	}
@@ -267,7 +276,7 @@ public class LoggingPanel extends JPanel implements LogListener
 	private JCheckBoxMenuItem recordCallingClassMenuItem() {
 		JCheckBoxMenuItem menuItem = new JCheckBoxMenuItem();
 		menuItem.setState(false);
-		menuItem.setAction(new AbstractAction("record calling class") {
+		menuItem.setAction(new AbstractAction("Record calling class") {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				recorder.setRecordCallingClass(menuItem.getState());
