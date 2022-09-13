@@ -260,16 +260,4 @@ public class OptionsLookAndFeel extends OptionsPlugin {
 			}
 		}
 	}
-
-	// -- Deprecated methods --
-
-	@Deprecated
-	public UserInterface getUI() {
-		return uiService().getDefaultUI();
-	}
-
-	@Deprecated
-	public void setUI(@SuppressWarnings("unused") final UserInterface ui) {
-		throw new UnsupportedOperationException();
-	}
 }
