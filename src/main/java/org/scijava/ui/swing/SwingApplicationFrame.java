@@ -72,15 +72,11 @@ public class SwingApplicationFrame extends JFrame implements ApplicationFrame {
 
 	@Override
 	public void activate() {
-		EventQueue.invokeLater(new Runnable() {
-
-			@Override
-			public void run() {
-				// NB: You might think calling requestFocus() would work, but no.
-				// The following solution is from: http://bit.ly/zAXzd5
-				toFront();
-				repaint();
-			}
+		EventQueue.invokeLater(() -> {
+			// NB: You might think calling requestFocus() would work, but no.
+			// The following solution is from: http://bit.ly/zAXzd5
+			toFront();
+			repaint();
 		});
 	}
 

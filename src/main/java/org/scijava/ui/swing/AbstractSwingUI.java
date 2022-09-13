@@ -62,6 +62,7 @@ import org.scijava.ui.awt.AWTInputEventDispatcher;
 import org.scijava.ui.awt.AWTWindowEventDispatcher;
 import org.scijava.ui.console.ConsolePane;
 import org.scijava.ui.swing.console.SwingConsolePane;
+import org.scijava.ui.swing.laf.SwingLookAndFeelService;
 import org.scijava.ui.swing.menu.SwingJMenuBarCreator;
 import org.scijava.ui.swing.menu.SwingJPopupMenuCreator;
 import org.scijava.ui.viewer.DisplayViewer;
@@ -91,6 +92,9 @@ public abstract class AbstractSwingUI extends AbstractUserInterface implements
 
 	@Parameter
 	private UIService uiService;
+
+	@Parameter(required = false)
+	private SwingLookAndFeelService lafService;
 
 	@Parameter
 	private ThreadService threadService;
@@ -242,6 +246,9 @@ public abstract class AbstractSwingUI extends AbstractUserInterface implements
 
 	@Override
 	protected void createUI() {
+		// Before we create any UI components, initialize the Look and Feel.
+		if (lafService != null) lafService.initLookAndFeel();
+
 		final JMenuBar menuBar = createMenus();
 
 		appFrame = new SwingApplicationFrame(appService.getApp().getTitle());
