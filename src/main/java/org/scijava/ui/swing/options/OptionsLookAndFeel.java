@@ -239,16 +239,16 @@ public class OptionsLookAndFeel extends OptionsPlugin {
 	public static void setupLookAndFeel(final String lookAndFeel) {
 		switch (lookAndFeel) { // FIXME: should FlatLaf.updateUI() calls be replaced with updateUILater()?
 		case FlatLightLaf.NAME:
-			if (FlatLightLaf.setup()) FlatLightLaf.updateUI();
+			if (FlatLightLaf.setup()) FlatLaf.updateUI();
 			return;
 		case FlatDarkLaf.NAME:
-			if (FlatDarkLaf.setup()) FlatDarkLaf.updateUI();
+			if (FlatDarkLaf.setup()) FlatLaf.updateUI();
 			return;
 		case FlatDarculaLaf.NAME:
-			if (FlatDarculaLaf.setup()) FlatDarculaLaf.updateUI();
+			if (FlatDarculaLaf.setup()) FlatLaf.updateUI();
 			return;
 		case FlatIntelliJLaf.NAME:
-			if (FlatIntelliJLaf.setup()) FlatIntelliJLaf.updateUI();
+			if (FlatIntelliJLaf.setup()) FlatLaf.updateUI();
 			return;
 		default:
 			try {

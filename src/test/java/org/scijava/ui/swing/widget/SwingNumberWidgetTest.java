@@ -33,7 +33,6 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.StringReader;
 import java.lang.reflect.Field;
-import java.util.ArrayList;
 import java.util.Collections;
 
 import javax.swing.JSpinner;
@@ -41,16 +40,12 @@ import javax.swing.JSpinner.NumberEditor;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.scijava.Context;
 import org.scijava.module.Module;
-import org.scijava.module.ModuleException;
 import org.scijava.module.ModuleItem;
 import org.scijava.module.ModuleService;
 import org.scijava.script.ScriptInfo;
-import org.scijava.script.ScriptService;
-import org.scijava.util.ListUtils;
 import org.scijava.widget.InputWidget;
 import org.scijava.widget.WidgetModel;
 import org.scijava.widget.WidgetService;
@@ -74,7 +69,9 @@ public class SwingNumberWidgetTest {
 	}
 
 	@Test
-	public void test() throws NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException, ModuleException {
+	public void test() throws NoSuchFieldException, SecurityException,
+		IllegalArgumentException, IllegalAccessException
+	{
 		String[] expecteds = getExpectedValues();
 		Field spinnerField = SwingNumberWidget.class.getDeclaredField("spinner");
 		spinnerField.setAccessible(true);

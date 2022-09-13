@@ -64,10 +64,11 @@ import net.miginfocom.swing.MigLayout;
 
 import org.scijava.MenuEntry;
 import org.scijava.MenuPath;
+import org.scijava.log.LogService;
 import org.scijava.module.ModuleInfo;
 import org.scijava.module.ModuleService;
-import org.scijava.util.ClassUtils;
 import org.scijava.util.FileUtils;
+import org.scijava.util.Types;
 
 /**
  * A panel that allows the user to search for SciJava commands. Based on the
@@ -76,7 +77,6 @@ import org.scijava.util.FileUtils;
  * @author Curtis Rueden
  * @author Johannes Schindelin
  */
-@SuppressWarnings("serial")
 public class CommandFinderPanel extends JPanel implements ActionListener,
 	DocumentListener
 {
@@ -85,11 +85,13 @@ public class CommandFinderPanel extends JPanel implements ActionListener,
 	protected final JTable commandsList;
 	protected final CommandTableModel tableModel;
 
+	private final LogService log;
 	private final List<ModuleInfo> commands;
 
 	public CommandFinderPanel(final ModuleService moduleService,
 		final String baseDir)
 	{
+		log = moduleService.context().getService(LogService.class);
 		commands = buildCommands(moduleService);
 
 		setPreferredSize(new Dimension(800, 600));
@@ -272,7 +274,7 @@ public class CommandFinderPanel extends JPanel implements ActionListener,
 
 	// -- Helper classes --
 
-	protected static class CommandTableModel extends AbstractTableModel {
+	protected class CommandTableModel extends AbstractTableModel {
 		public final static int COLUMN_COUNT = 8;
 
 		private final String baseDir;
@@ -351,7 +353,15 @@ public class CommandFinderPanel extends JPanel implements ActionListener,
 			}
 			if (column == 4) return info.getDelegateClassName();
 			if (column == 5) {
-				final URL location = ClassUtils.getLocation(info.getDelegateClassName());
+				Class<?> c = null;
+				try {
+					c = info.loadDelegateClass();
+				}
+				catch (final ClassNotFoundException exc) {
+					log.warn(exc);
+				}
+				final URL location = Types.location(c);
+
 				final File file = FileUtils.urlToFile(location);
 				final String path = file == null ? null : file.getAbsolutePath();
 				if (path != null && path.startsWith(baseDir)) {

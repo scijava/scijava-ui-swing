@@ -110,43 +110,39 @@ public class SwingConsolePaneBenchmark {
 		final String completenessMessage = "Checking for completeness of output...";
 		System.out.println();
 		System.out.println(completenessMessage);
-		threadService.queue(new Runnable() {
+		threadService.queue(() -> {
+			System.out.println();
+			final SwingSDIUI ui =
+				(SwingSDIUI) context.service(UIService.class).getVisibleUIs().get(0);
+			final JTextPane textPane = ui.getConsolePane().getTextPane();
+			final Document doc = textPane.getDocument();
+			try {
+				final String text = doc.getText(0, doc.getLength());
+				final String[] lines = text.split("\n");
+				Arrays.sort(lines);
 
-			@Override
-			public void run() {
-				System.out.println();
-				final SwingSDIUI ui =
-					(SwingSDIUI) context.service(UIService.class).getVisibleUIs().get(0);
-				final JTextPane textPane = ui.getConsolePane().getTextPane();
-				final Document doc = textPane.getDocument();
-				try {
-					final String text = doc.getText(0, doc.getLength());
-					final String[] lines = text.split("\n");
-					Arrays.sort(lines);
-
-					int lineIndex = 0;
-					assertEquals("", lines[lineIndex++]);
-					assertEquals("", lines[lineIndex++]);
-					for (int t = 0; t < numThreads; t++) {
-						for (int s = 0; s < numStreams; s++) {
-							for (int i = 0; i < numOperations; i++) {
-								final String expected = str(t, streamLabels[s], i);
-								final String actual = lines[lineIndex++];
-								assertEquals(expected, actual);
-							}
+				int lineIndex = 0;
+				assertEquals("", lines[lineIndex++]);
+				assertEquals("", lines[lineIndex++]);
+				for (int t = 0; t < numThreads; t++) {
+					for (int s = 0; s < numStreams; s++) {
+						for (int i = 0; i < numOperations; i++) {
+							final String expected = str(t, streamLabels[s], i);
+							final String actual = lines[lineIndex++];
+							assertEquals(expected, actual);
 						}
 					}
-					assertTrue(lines[lineIndex++].startsWith("Benchmark took "));
-					assertEquals(completenessMessage, lines[lineIndex++]);
-					assertEquals("Goodbye cruel world!", lines[lineIndex++]);
-					assertEquals("Hello world!", lines[lineIndex++]);
-					assertEquals(lineIndex, lines.length);
+				}
+				assertTrue(lines[lineIndex++].startsWith("Benchmark took "));
+				assertEquals(completenessMessage, lines[lineIndex++]);
+				assertEquals("Goodbye cruel world!", lines[lineIndex++]);
+				assertEquals("Hello world!", lines[lineIndex++]);
+				assertEquals(lineIndex, lines.length);
 
-					System.out.println("Success! All output accounted for!");
-				}
-				catch (final BadLocationException exc) {
-					exc.printStackTrace();
-				}
+				System.out.println("Success! All output accounted for!");
+			}
+			catch (final BadLocationException exc) {
+				exc.printStackTrace();
 			}
 		});
 

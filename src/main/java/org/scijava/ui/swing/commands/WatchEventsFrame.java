@@ -64,8 +64,8 @@ import org.scijava.log.LogService;
 import org.scijava.swing.checkboxtree.CheckBoxNodeData;
 import org.scijava.swing.checkboxtree.CheckBoxNodeEditor;
 import org.scijava.swing.checkboxtree.CheckBoxNodeRenderer;
-import org.scijava.util.ClassUtils;
 import org.scijava.util.IteratorPlus;
+import org.scijava.util.Types;
 
 /**
  * Swing-specific window for event watcher plugin.
@@ -348,8 +348,8 @@ public class WatchEventsFrame extends JFrame implements ActionListener,
 		if (data == null) return null;
 		final String className = data.getText();
 		@SuppressWarnings({ "rawtypes", "unchecked" })
-		final Class<? extends SciJavaEvent> eventType =
-			(Class) ClassUtils.loadClass(className);
+		final Class<? extends SciJavaEvent> eventType = //
+			(Class) Types.load(className);
 		if (eventType == null) {
 			throw new IllegalStateException("Invalid class: " + className);
 		}

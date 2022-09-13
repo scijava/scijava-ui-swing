@@ -47,7 +47,7 @@ import java.awt.image.BufferedImage;
  * @author Matthias Arzt
  * @see ConvertService
  */
-@Plugin(type = Converter.class, priority = Priority.NORMAL_PRIORITY)
+@Plugin(type = Converter.class, priority = Priority.NORMAL)
 public class PlotToBufferedImageConverter extends AbstractConverter<Plot, BufferedImage>
 {
 

@@ -39,7 +39,7 @@ import org.scijava.plugin.Plugin;
 /**
  * @author Matthias.Arzt
  */
-@Plugin(type = Converter.class, priority = Priority.NORMAL_PRIORITY)
+@Plugin(type = Converter.class, priority = Priority.NORMAL)
 public class XYPlotConverter extends AbstractConverter<XYPlot, JFreeChart> {
 	@SuppressWarnings("unchecked")
 	@Override

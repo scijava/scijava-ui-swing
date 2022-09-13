@@ -65,7 +65,6 @@ import org.scijava.module.ModuleService;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.thread.ThreadService;
-import org.scijava.ui.UIService;
 import org.scijava.widget.FileListWidget;
 import org.scijava.widget.FileWidget;
 import org.scijava.widget.InputWidget;

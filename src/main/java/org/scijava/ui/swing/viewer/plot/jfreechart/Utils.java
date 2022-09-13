@@ -29,16 +29,15 @@
 
 package org.scijava.ui.swing.viewer.plot.jfreechart;
 
-import org.scijava.plot.NumberAxis;
-import org.scijava.plot.NumberAxis.RangeStrategy;
+import java.awt.Color;
+import java.util.Objects;
+
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.LogAxis;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.block.BlockBorder;
 import org.jfree.chart.plot.Plot;
-
-import java.awt.*;
-import java.util.Objects;
+import org.scijava.plot.NumberAxis;
 
 /**
  * @author Matthias Arzt
@@ -54,13 +53,10 @@ class Utils {
 	}
 
 	static ValueAxis getJFreeChartAxis(NumberAxis v) {
-		if(v.isLogarithmic())
-			return getJFreeChartLogarithmicAxis(v);
-		else
-			return getJFreeCharLinearAxis(v);
+		return v.isLogarithmic() ? logarithmicAxis(v) : linearAxis(v);
 	}
 
-	static ValueAxis getJFreeChartLogarithmicAxis(NumberAxis v) {
+	static ValueAxis logarithmicAxis(NumberAxis v) {
 		LogAxis axis = new LogAxis(v.getLabel());
 		switch (v.getRangeStrategy()) {
 			case MANUAL:
@@ -72,7 +68,7 @@ class Utils {
 		return axis;
 	}
 
-	static ValueAxis getJFreeCharLinearAxis(NumberAxis v) {
+	static ValueAxis linearAxis(NumberAxis v) {
 		org.jfree.chart.axis.NumberAxis axis = new org.jfree.chart.axis.NumberAxis(v.getLabel());
 		switch(v.getRangeStrategy()) {
 			case MANUAL:
