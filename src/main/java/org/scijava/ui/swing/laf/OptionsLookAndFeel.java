@@ -27,7 +27,7 @@
  * #L%
  */
 
-package org.scijava.ui.swing.options;
+package org.scijava.ui.swing.laf;
 
 import java.awt.Component;
 import java.awt.EventQueue;
