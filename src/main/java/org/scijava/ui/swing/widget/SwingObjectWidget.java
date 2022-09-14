@@ -117,8 +117,8 @@ public class SwingObjectWidget extends SwingInputWidget<Object> implements
 		public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected,
 				boolean cellHasFocus) {
 			JLabel renderer = (JLabel) defaultRenderer.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-			renderer.setText(context().service(ObjectService.class).getName(value));
-			renderer.setToolTipText(value.toString());
+			renderer.setText(value == null ? "" : context().service(ObjectService.class).getName(value));
+			renderer.setToolTipText(value == null ? null : value.toString());
 			return renderer;
 		}
 	}
