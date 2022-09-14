@@ -78,10 +78,11 @@ public class SwingObjectWidget extends SwingInputWidget<Object> implements
 	public void set(final WidgetModel model) {
 		super.set(model);
 
-		String[] availableChoices = model.getChoices();
-		if (availableChoices != null) {
-			comboBox = new JComboBox<>(availableChoices);
-		} else {
+		String[] choices = model.getChoices();
+		if (choices != null && choices.length > 0) {
+			comboBox = new JComboBox<>(choices);
+		}
+		else {
 			comboBox = new JComboBox<>(model.getObjectPool().toArray());
 		}
 		setToolTip(comboBox);
@@ -96,8 +97,10 @@ public class SwingObjectWidget extends SwingInputWidget<Object> implements
 
 	@Override
 	public boolean supports(final WidgetModel model) {
-		return super.supports(model) && ((model.getChoices() != null && model.getChoices().length>0) ||
-			((model.getObjectPool() != null) && (model.getObjectPool().size() > 0)));
+		return super.supports(model) && (
+			(model.getChoices() != null && model.getChoices().length > 0) ||
+			(model.getObjectPool() != null && model.getObjectPool().size() > 0)
+		);
 	}
 
 	// -- AbstractUIInputWidget methods ---
