@@ -128,7 +128,7 @@ public class SwingNumberWidget extends SwingInputWidget<Number> implements
 		}
 		spinner.setEditor(new JSpinner.NumberEditor(spinner, format));
 
-		Dimension spinnerSize = spinner.getSize();
+		Dimension spinnerSize = spinner.getPreferredSize();
 		spinnerSize.width = 50;
 		spinner.setPreferredSize(spinnerSize);
 		fixSpinner(type);
