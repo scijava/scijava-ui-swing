@@ -45,6 +45,7 @@ import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
 import javax.swing.UnsupportedLookAndFeelException;
 
+import org.scijava.log.LogService;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.prefs.PrefService;
@@ -68,6 +69,9 @@ public class SwingLookAndFeelService extends AbstractService implements
 	@Parameter(required = false)
 	private PrefService prefs;
 
+	@Parameter(required = false)
+	private LogService log;
+
 	/** Mapping from look-and-feel name to an associated factory. */
 	private Map<String, Supplier<LookAndFeel>> factories;
 
@@ -80,9 +84,19 @@ public class SwingLookAndFeelService extends AbstractService implements
 	 */
 	public void initLookAndFeel() {
 		// Set the L+F to match the user setting, or "FlatLaf Light" initially.
-		final String laf = prefs == null ? null : //
+		final String lafPref = prefs == null ? null : //
 			prefs.get(getClass(), LAF_PREF_KEY);
-		setLookAndFeel(laf == null ? FlatLightLaf.NAME : laf);
+		final String laf = lafPref == null ? FlatLightLaf.NAME : lafPref;
+		try {
+			setLookAndFeel(laf);
+		}
+		catch (final IllegalArgumentException exc) {
+			// If something goes wrong, no worries -- just log the exception.
+			if (log != null) {
+				log.warn("Could not set Look & Feel '" + laf + "'");
+				log.debug(exc);
+			}
+		}
 	}
 
 	/**
