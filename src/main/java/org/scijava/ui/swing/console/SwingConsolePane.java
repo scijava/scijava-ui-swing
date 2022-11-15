@@ -89,6 +89,8 @@ public class SwingConsolePane extends AbstractConsolePane<JPanel> {
 
 	private JPanel component;
 
+	private boolean initializing;
+
 	public SwingConsolePane(final Context context) {
 		super(context);
 	}
@@ -127,7 +129,7 @@ public class SwingConsolePane extends AbstractConsolePane<JPanel> {
 
 	@Override
 	public JPanel getComponent() {
-		if (consolePanel == null) initLoggingPanel();
+		if (consolePanel == null) initComponents();
 		return component;
 	}
 
@@ -139,12 +141,58 @@ public class SwingConsolePane extends AbstractConsolePane<JPanel> {
 	// -- Helper methods - lazy initialization --
 
 	private ConsolePanel consolePanel() {
-		if (consolePanel == null) initLoggingPanel();
+		if (consolePanel == null) initComponents();
 		return consolePanel;
 	}
 
-	private synchronized void initLoggingPanel() {
+	private synchronized void initComponents() {
 		if (consolePanel != null) return;
+		if (initializing) {
+			// NB: We are in a loop, with `new ConsolePanel` triggering more output.
+			//
+			// In a nutshell:
+			// stderr -> ConsoleService -> new ConsolePanel -> stderr -> ...
+			//
+			// Here is an example where we have experienced this happening:
+			//
+			// ...
+			// at org.scijava.ui.swing.console.ConsolePanel.<init>(...)
+			// at org.scijava.ui.swing.console.SwingConsolePane.initComponents(...)
+			// at org.scijava.ui.swing.console.SwingConsolePane.consolePanel(...)
+			// at org.scijava.ui.swing.console.SwingConsolePane.append(...)
+			// at org.scijava.ui.console.AbstractConsolePane.outputOccurred(...)
+			// at org.scijava.console.DefaultConsoleService.notifyListeners(...)
+			// at org.scijava.console.DefaultConsoleService$OutputStreamReporter.publish(...)
+			// at org.scijava.console.DefaultConsoleService$OutputStreamReporter.write(...)
+			// at org.scijava.console.MultiOutputStream.write(...)
+			// at java.io.PrintStream.write(...)
+			// ...
+			// at java.lang.Throwable.printStackTrace(...)
+			// at javax.swing.UIDefaults.getUIError(...)
+			// at javax.swing.MultiUIDefaults.getUIError(...)
+			// at javax.swing.UIDefaults.getUI(...)
+			// at javax.swing.UIManager.getUI(...)
+			// at javax.swing.text.JTextComponent.updateUI(...)
+			// at javax.swing.text.JTextComponent.<init>(...)
+			// at javax.swing.JEditorPane.<init>(...)
+			// at javax.swing.JTextPane.<init>(...)
+			// at org.scijava.ui.swing.console.ConsolePanel.initGui(...)
+			// at org.scijava.ui.swing.console.ConsolePanel.<init>(...)
+			// at org.scijava.ui.swing.console.SwingConsolePane.initComponents(...)
+			// at org.scijava.ui.swing.console.SwingConsolePane.consolePanel(...)
+			// at org.scijava.ui.swing.console.SwingConsolePane.append(...)
+			// at org.scijava.ui.console.AbstractConsolePane.outputOccurred(...)
+			// at org.scijava.console.DefaultConsoleService.notifyListeners(...)
+			// at org.scijava.console.DefaultConsoleService$OutputStreamReporter.publish(...)
+			// at org.scijava.console.DefaultConsoleService$OutputStreamReporter.write(...)
+			// at org.scijava.console.MultiOutputStream.write(...)
+			// at java.io.PrintStream.write(...)
+			// ...
+			//
+			throw new RuntimeException(
+					"Output loop while initializing the console GUI.");
+		}
+		initializing = true;
 		consolePanel = new ConsolePanel(context);
 		loggingPanel = new LoggingPanel(context, LOG_FORMATTING_SETTINGS_KEY);
 		logService.addLogListener(loggingPanel);
@@ -153,6 +201,7 @@ public class SwingConsolePane extends AbstractConsolePane<JPanel> {
 		tabs.addTab("Console", consolePanel);
 		tabs.addTab("Log", loggingPanel);
 		component.add(tabs, "grow");
+		initializing = false;
 	}
 
 	// -- Helper methods - testing --
