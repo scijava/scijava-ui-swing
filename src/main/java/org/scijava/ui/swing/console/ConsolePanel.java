@@ -59,8 +59,8 @@ import org.scijava.ui.swing.StaticSwingUtils;
 
 /**
  * {@link ConsolePanel} is a {@link JPanel} holding a {@link JTextArea}. It can
- * be used to display text written to System.out and System.err. Therefor it can
- * be added as {@link OutputListener} to
+ * be used to display text written to {@code System.out} and {@code System.err}.
+ * Therefore, it can be added as {@link OutputListener} to
  * {@link org.scijava.console.ConsoleService}.
  *
  * @author Matthias Arzt
