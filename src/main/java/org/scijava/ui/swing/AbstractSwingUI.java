@@ -249,6 +249,15 @@ public abstract class AbstractSwingUI extends AbstractUserInterface implements
 		// Before we create any UI components, initialize the Look and Feel.
 		if (lafService != null) lafService.initLookAndFeel();
 
+		// NB: Create the console first, because if the Look and Feel
+		// is busted, it will trigger an infinite loop during console
+		// initialization, which the SwingConsolePane is smart enough to
+		// catch and throw a RuntimeException in response, thereby
+		// avoiding any subsequent output shenanigans past this point.
+		if (!Boolean.getBoolean(ConsolePane.NO_CONSOLE_PROPERTY)) {
+			consolePane = new SwingConsolePane(getContext());
+		}
+
 		final JMenuBar menuBar = createMenus();
 
 		appFrame = new SwingApplicationFrame(appService.getApp().getTitle());
@@ -256,10 +265,6 @@ public abstract class AbstractSwingUI extends AbstractUserInterface implements
 
 		toolBar = new SwingToolBar(getContext());
 		statusBar = new SwingStatusBar(getContext());
-
-		if (!Boolean.getBoolean(ConsolePane.NO_CONSOLE_PROPERTY)) {
-			consolePane = new SwingConsolePane(getContext());
-		}
 
 		systemClipboard = new AWTClipboard();
 
