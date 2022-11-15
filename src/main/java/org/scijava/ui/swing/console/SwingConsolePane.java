@@ -1,5 +1,4 @@
 /*
- * 
  * #%L
  * SciJava UI components for Java Swing.
  * %%
@@ -116,13 +115,7 @@ public class SwingConsolePane extends AbstractConsolePane<JPanel> {
 	@Override
 	public void show() {
 		if (window == null || window.isVisible()) return;
-		threadService.queue(new Runnable() {
-
-			@Override
-			public void run() {
-				window.setVisible(true);
-			}
-		});
+		threadService.queue(() -> window.setVisible(true));
 	}
 
 	// -- UIComponent methods --
