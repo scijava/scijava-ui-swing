@@ -255,7 +255,36 @@ public abstract class AbstractSwingUI extends AbstractUserInterface implements
 		// catch and throw a RuntimeException in response, thereby
 		// avoiding any subsequent output shenanigans past this point.
 		if (!Boolean.getBoolean(ConsolePane.NO_CONSOLE_PROPERTY)) {
-			consolePane = new SwingConsolePane(getContext());
+			final String[] lafsToTry = {
+				null, // the default look and feel, as set by initLookAndFeel()
+				// e.g. Linux=com.sun.java.swing.plaf.gtk.GTKLookAndFeel
+				javax.swing.UIManager.getSystemLookAndFeelClassName(),
+				"Nimbus", // because it's nicer than Metal
+				// javax.swing.plaf.metal.MetalLookAndFeel
+				javax.swing.UIManager.getCrossPlatformLookAndFeelClassName()
+			};
+			// NB: Ideally we would try these multiple LAFs regardless of if the
+			// console is enabled or not. However, when a LAF explodes due to missing
+			// ComponentUI, Java does printStackTrace() internally and does *not*
+			// throw an exception! So we can't try/catch any `new SwingComponent()`;
+			// we specifically need to do it with the ConsolePane, which has special
+			// logic for detecting infinite console output loops that throws
+			// RuntimeException when this sort of nonsense happens.
+			for (final String laf : lafsToTry) {
+				if (laf != null && lafService != null) lafService.setLookAndFeel(laf);
+				try {
+					consolePane = new SwingConsolePane(getContext());
+					break;
+				}
+				catch (final RuntimeException exc) {
+					log.error("Failed to configure UI with " + //
+						(laf == null ? "default" : laf) + " Look+Feel", exc);
+					if (lafService == null) break;
+				}
+			}
+			if (consolePane == null) {
+				throw new IllegalStateException("Failed to configure UI Look+Feel!");
+			}
 		}
 
 		final JMenuBar menuBar = createMenus();
