@@ -160,7 +160,6 @@
 		<dependency>
 			<groupId>com.formdev</groupId>
 			<artifactId>flatlaf</artifactId>
-			<version>${flatlaf.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.github.sbridges.object-inspector</groupId>
