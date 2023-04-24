@@ -46,6 +46,7 @@ import javax.swing.JButton;
 import javax.swing.JColorChooser;
 import javax.swing.JDialog;
 import javax.swing.JPanel;
+import javax.swing.UIManager;
 import javax.swing.colorchooser.AbstractColorChooserPanel;
 
 import org.scijava.plugin.Plugin;
@@ -66,7 +67,7 @@ public class SwingColorWidget extends SwingInputWidget<ColorRGB> implements
 	ActionListener, ColorWidget<JPanel>
 {
 
-	private static final int SWATCH_WIDTH = 64, SWATCH_HEIGHT = 16;
+	private static final int SWATCH_WIDTH = 64, SWATCH_HEIGHT = widgetHeight();
 
 	private static final String HSB_CLASS_NAME =
 		"javax.swing.colorchooser.DefaultHSBChooserPanel";
@@ -209,6 +210,15 @@ public class SwingColorWidget extends SwingInputWidget<ColorRGB> implements
 		chooser.setChooserPanels(panels);
 
 		return chooser;
+	}
+
+	private static int widgetHeight() {
+		try {
+			return UIManager.getFont("TextField.font").getSize();
+		} catch (final Exception ignored) {
+			// do nothing
+		}
+		return 16;
 	}
 
 	// -- AbstractUIInputWidget methods ---
