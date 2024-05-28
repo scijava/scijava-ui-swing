@@ -40,6 +40,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.StringJoiner;
 import java.util.stream.Collectors;
 
 import javax.swing.Box;
@@ -235,7 +236,22 @@ public class SwingFileWidget extends SwingInputWidget<File> implements
 				}
 				return false;
 			}
+
+			@Override
+			public String toString() {
+				return formatFileFilterExtensions( exts );
+			}
 		};
+	}
+
+	static String formatFileFilterExtensions( final List< String > extensions ) {
+		List< String > extsWithPrefix = new ArrayList<>();
+		for ( String extension : extensions ) {
+			extsWithPrefix.add( "*." + extension );
+		}
+		StringJoiner joiner = new StringJoiner( ";" );
+		extsWithPrefix.forEach( joiner::add );
+		return joiner.toString();
 	}
 
 	/**
