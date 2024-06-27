@@ -145,6 +145,8 @@ public abstract class AbstractSwingUI extends AbstractUserInterface implements
 				final JFileChooser chooser = new JFileChooser(file);
 				if (FileWidget.DIRECTORY_STYLE.equals(style)) {
 					chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+				} else if (FileWidget.FILES_AND_DIRECTORIES.equals(style)) {
+					chooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
 				}
 				final int rval;
 				if (FileWidget.SAVE_STYLE.equals(style)) {
