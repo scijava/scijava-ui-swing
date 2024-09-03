@@ -78,9 +78,7 @@ public class SwingNumberWidgetTest {
 		
 		String script = createScript();
 		ScriptInfo info = new ScriptInfo(context, ".bsizes", new StringReader(script));
-		//System.err.println(moduleService);
 		Module module = moduleService.createModule(info);
-		//Module module = info.createModule();
 		Iterable<ModuleItem<?>> inputs = info.inputs();
 		SwingInputPanel inputPanel = new SwingInputPanel();
 		int i = 0;
@@ -112,7 +110,8 @@ public class SwingNumberWidgetTest {
 				"1.000",
 				"1.0000",
 				"1.000",
-				"1.0000"
+				"1.0000",
+				"0"
 		};
 	}
 
@@ -138,6 +137,9 @@ public class SwingNumberWidgetTest {
 				"#@ Double (value=1, min=0, max=10, stepSize=0.001, persist=false, style=\"slider,format:0.0000\") n\n" + 
 				"#@ Double (value=1, min=0, max=10, stepSize=0.001, persist=false, style=\"scroll bar\") o\n" + 
 				"#@ Double (value=1, min=0, max=10, stepSize=0.001, persist=false, style=\"scroll bar,format:0.0000\") p\n" + 
+				"\n" + 
+				"// BigInteger without min, max, stepSize\n" + 
+				"#@ BigInteger (persist=false) q\n" + 
 				"";
 		return script;
 	}
