@@ -30,6 +30,7 @@
 package org.scijava.ui.swing.widget;
 
 import java.io.IOException;
+import java.util.Objects;
 
 import javax.swing.JEditorPane;
 import javax.swing.JPanel;
@@ -124,6 +125,24 @@ public class SwingMessageWidget extends SwingInputWidget<String> implements
 	@Override
 	public void doRefresh() {
 		// maybe dialog owner changed message content
-		pane.setText(get().getText());
+		String text = get().getText();
+		if (!Objects.equals(htmlify(text), pane.getText())) {
+			// NB: Only change the text if it actually changed.
+			// This avoids triggering a scrollRectToVisible-type behavior where the
+			// containing scroll pane's view gets adjusted to include this text area.
+			// Not sure if it's a bug, strictly speaking, but it causes undesirable
+			// sudden scrolling, as reported in scijava/scijava-ui-swing#74.
+			pane.setText(text);
+		}
+	}
+
+	// HACK: Normalize text to final HTML representation
+	// by feeding it through a dummy JEditorPane instance.
+	private JEditorPane dummy;
+	private String htmlify(String text) {
+		if (text == null) return null;
+		if (dummy == null) dummy = new JEditorPane("text/html", "");
+		dummy.setText(text);
+		return dummy.getText();
 	}
 }
