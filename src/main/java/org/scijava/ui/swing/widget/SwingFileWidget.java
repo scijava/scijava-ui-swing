@@ -128,11 +128,11 @@ public class SwingFileWidget extends SwingInputWidget<File> implements
 		final String style;
 		if (model.isStyle(FileWidget.DIRECTORY_STYLE)) {
 			style = FileWidget.DIRECTORY_STYLE;
-		}
-		else if (model.isStyle(FileWidget.SAVE_STYLE)) {
+		} else if (model.isStyle(FileWidget.FILE_AND_DIRECTORY_STYLE)) {
+			style = FileWidget.FILE_AND_DIRECTORY_STYLE;
+		} else if (model.isStyle(FileWidget.SAVE_STYLE)) {
 			style = FileWidget.SAVE_STYLE;
-		}
-		else {
+		} else {
 			style = FileWidget.OPEN_STYLE;
 		}
 		file = uiService.chooseFile(file, style);
@@ -181,8 +181,9 @@ public class SwingFileWidget extends SwingInputWidget<File> implements
 	 * <ul>
 	 * <li>{@link FileWidget#OPEN_STYLE}</li>
 	 * <li>{@link FileWidget#SAVE_STYLE}</li>
-	 * <li>{@link FileListWidget#FILES_ONLY}</li>
 	 * <li>{@link FileWidget#DIRECTORY_STYLE}</li>
+	 * <li>{@link FileWidget#FILE_AND_DIRECTORY_STYLE}</li>
+	 * <li>{@link FileListWidget#FILES_ONLY}</li>
 	 * <li>{@link FileListWidget#DIRECTORIES_ONLY}</li>
 	 * <li>{@link FileListWidget#FILES_AND_DIRECTORIES}</li>
 	 * </ul>
@@ -200,7 +201,7 @@ public class SwingFileWidget extends SwingInputWidget<File> implements
 			FileWidget.DIRECTORY_STYLE, FileListWidget.DIRECTORIES_ONLY
 		);
 		final List<String> filesAndDirsStyles = Arrays.asList(
-			FileListWidget.FILES_AND_DIRECTORIES
+			FileWidget.FILE_AND_DIRECTORY_STYLE, FileListWidget.FILES_AND_DIRECTORIES
 		);
 
 		final List<String> exts = new ArrayList<>();
