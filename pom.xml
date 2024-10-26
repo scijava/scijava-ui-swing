@@ -112,6 +112,7 @@
 
 		<jdatepicker.version>1.3.2</jdatepicker.version>
 		<object-inspector.version>0.1</object-inspector.version>
+		<scijava-common.version>99.0</scijava-common.version>
 	</properties>
 
 	<repositories>

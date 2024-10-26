@@ -337,7 +337,7 @@ public class SwingFileWidget extends SwingInputWidget<File> implements
 
 	// -- Helper classes --
 
-	private class FileTransferHandler extends TransferHandler {
+	public static class FileTransferHandler extends TransferHandler {
 
 		private final String style;
 
