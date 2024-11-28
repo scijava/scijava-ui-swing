@@ -29,24 +29,38 @@
 
 package org.scijava.ui.swing.widget;
 
+import java.awt.Component;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 import net.miginfocom.swing.MigLayout;
 
+import org.scijava.ItemVisibility;
 import org.scijava.widget.AbstractInputPanel;
 import org.scijava.widget.InputPanel;
 import org.scijava.widget.InputWidget;
 import org.scijava.widget.WidgetModel;
 
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+
 /**
  * Swing implementation of {@link InputPanel}.
  * 
  * @author Curtis Rueden
+ * @author Karl Duderstadt
  */
 public class SwingInputPanel extends AbstractInputPanel<JPanel, JPanel> {
 
 	private JPanel uiComponent;
+	
+	private Map<String, List<Component>> widgetGroups;
+	private Map<String, Boolean> widgetGroupVisible;
 
 	// -- InputPanel methods --
 
@@ -55,20 +69,101 @@ public class SwingInputPanel extends AbstractInputPanel<JPanel, JPanel> {
 		super.addWidget(widget);
 		final JPanel widgetPane = widget.getComponent();
 		final WidgetModel model = widget.get();
-
+		final String group =  (model.getItem().getVisibility() == ItemVisibility.GROUP) ? (String) model.getValue() : model.getGroup();
+		
+		if (widgetGroups == null)
+			widgetGroups = new HashMap<String, List<Component>>();
+		
+		if (widgetGroupVisible == null)
+			widgetGroupVisible = new HashMap<String, Boolean>();
+		
+		if (!widgetGroups.containsKey(group)) 
+			widgetGroups.put(group, new ArrayList<Component>());
+		
 		// add widget to panel
-		if (widget.isLabeled()) {
+		if (model.getItem().getVisibility() == ItemVisibility.GROUP) {
+			   JPanel labelPanel = new JPanel(new MigLayout("fillx,insets 5 15 5 15, gapy 0"));
+	           JLabel label = (model.getItem().isExpanded()) ? new JLabel("<html><strong>▼ " + group + "</strong></html>") :
+	        	   new JLabel("<html><strong>▶ " + group + "</strong></html>");
+	           
+	           widgetGroupVisible.put(group, model.getItem().isExpanded());
+
+	           label.addMouseListener(new MouseAdapter() {
+	               /**
+	                * Invoked when the mouse button has been clicked (pressed
+	                * and released) on a component.
+	                * @param e the event to be processed
+	                */
+	               @Override
+	               public void mouseClicked(MouseEvent e) {
+	               }
+
+	               /**
+	                * Invoked when a mouse button has been pressed on a component.
+	                * @param e the event to be processed
+	                */
+	               @Override
+	               public void mousePressed(MouseEvent e) {
+                       widgetGroupVisible.put(group, !widgetGroupVisible.get(group));
+            		   widgetGroups.get(group).forEach(comp -> comp.setVisible(widgetGroupVisible.get(group)));
+
+                       if(widgetGroupVisible.get(group))
+                    	   label.setText("<html><strong>▼ " + group + "</strong></html>");
+                       else
+                    	   label.setText("<html><strong>▶ " + group + "</strong></html>");
+                       
+                       getComponent().revalidate();
+	               }
+
+	               /**
+	                * Invoked when a mouse button has been released on a component.
+	                * @param e the event to be processed
+	                */
+	               @Override
+	               public void mouseReleased(MouseEvent e) {
+	               }
+
+	               /**
+	                * Invoked when the mouse enters a component.
+	                * @param e the event to be processed
+	                */
+	               @Override
+	               public void mouseEntered(MouseEvent e) {
+	               }
+
+	               /**
+	                * Invoked when the mouse exits a component.
+	                * @param e the event to be processed
+	                */
+	               @Override
+	               public void mouseExited(MouseEvent e) {
+	               }
+
+	           });
+
+	           labelPanel.add(label);
+	           getComponent().add(labelPanel, "align left, wrap");
+		}
+		else if (widget.isLabeled()) {
 			// widget is prefixed by a label
 			final JLabel l = new JLabel(model.getWidgetLabel());
 			final String desc = model.getItem().getDescription();
 			if (desc != null && !desc.isEmpty()) l.setToolTipText(desc);
-			getComponent().add(l);
-			getComponent().add(widgetPane);
+			getComponent().add(l, "hidemode 3");
+			widgetGroups.get(group).add(l);
+			
+			getComponent().add(widgetPane, "hidemode 3");
+			widgetGroups.get(group).add(widgetPane);
 		}
 		else {
 			// widget occupies entire row
-			getComponent().add(widgetPane, "span");
+			getComponent().add(widgetPane, "span, hidemode 3");
+			widgetGroups.get(group).add(widgetPane);
 		}
+		
+		//Make sure components have correct starting visibility
+		if (widgetGroups.containsKey(group) && widgetGroupVisible.containsKey(group))
+			widgetGroups.get(group).forEach(comp -> comp.setVisible(widgetGroupVisible.get(group)));
 	}
 
 	@Override
