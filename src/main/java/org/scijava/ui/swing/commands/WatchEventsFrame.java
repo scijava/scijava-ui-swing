@@ -55,6 +55,7 @@ import javax.swing.text.html.HTMLDocument;
 import javax.swing.text.html.HTMLEditorKit;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 
 import org.scijava.event.EventDetails;
@@ -153,7 +154,7 @@ public class WatchEventsFrame extends JFrame implements ActionListener,
 	/** Appends the given event details to the text pane. Efficient. */
 	public void append(final EventDetails details) {
 		final Class<? extends SciJavaEvent> eventType = details.getEventType();
-		final DefaultMutableTreeNode node = findOrCreate(eventType);
+		final TreeNode node = findOrCreate(eventType);
 		if (!isChecked(node)) return; // skip disabled event types
 		append(details.toHTML(selected.contains(eventType)));
 	}
@@ -178,10 +179,7 @@ public class WatchEventsFrame extends JFrame implements ActionListener,
 		try {
 			kit.insertHTML(doc, doc.getLength(), text, 0, 0, null);
 		}
-		catch (final BadLocationException e) {
-			log.error(e);
-		}
-		catch (final IOException e) {
+		catch (final BadLocationException | IOException e) {
 			log.error(e);
 		}
 		scrollToBottom();
@@ -266,10 +264,10 @@ public class WatchEventsFrame extends JFrame implements ActionListener,
 	}
 
 	/** Recursively populates the {@link #filtered} set to match the tree. */
-	private void syncFiltered(final DefaultMutableTreeNode node) {
+	private void syncFiltered(final TreeNode node) {
 		if (!isChecked(node)) filtered.add(getEventType(node));
 
-		for (final DefaultMutableTreeNode child : children(node)) {
+		for (final TreeNode child : children(node)) {
 			syncFiltered(child);
 		}
 	}
@@ -287,7 +285,7 @@ public class WatchEventsFrame extends JFrame implements ActionListener,
 	}
 
 	/** Gets a tree node for the given type of event, creating it if necessary. */
-	private DefaultMutableTreeNode findOrCreate(
+	private TreeNode findOrCreate(
 		final Class<? extends SciJavaEvent> eventType)
 	{
 		if (eventType == null) return null;
@@ -297,9 +295,9 @@ public class WatchEventsFrame extends JFrame implements ActionListener,
 		@SuppressWarnings("unchecked")
 		final Class<? extends SciJavaEvent> superclass =
 			(Class<? extends SciJavaEvent>) eventType.getSuperclass();
-		final DefaultMutableTreeNode parentNode = findOrCreate(superclass);
+		final TreeNode parentNode = findOrCreate(superclass);
 
-		for (final DefaultMutableTreeNode child : children(parentNode)) {
+		for (final TreeNode child : children(parentNode)) {
 			if (getEventType(child) == eventType) {
 				// found existing event type in the tree
 				return child;
@@ -308,7 +306,7 @@ public class WatchEventsFrame extends JFrame implements ActionListener,
 
 		// event type is new; add it to the tree
 		final DefaultMutableTreeNode node = create(eventType);
-		parentNode.add(node);
+		((DefaultMutableTreeNode) parentNode).add(node);
 
 		// refresh the tree
 		refreshTree();
@@ -333,16 +331,16 @@ public class WatchEventsFrame extends JFrame implements ActionListener,
 	}
 
 	/** Recursively marks the given node, and all its children, as selected. */
-	private void select(final DefaultMutableTreeNode node) {
+	private void select(final TreeNode node) {
 		selected.add(getEventType(node));
-		for (final DefaultMutableTreeNode child : children(node)) {
+		for (final TreeNode child : children(node)) {
 			select(child);
 		}
 	}
 
 	/** Extracts the event type associated with a given tree node. */
 	private Class<? extends SciJavaEvent> getEventType(
-		final DefaultMutableTreeNode node)
+		final TreeNode node)
 	{
 		final CheckBoxNodeData data = getData(node);
 		if (data == null) return null;
@@ -357,7 +355,7 @@ public class WatchEventsFrame extends JFrame implements ActionListener,
 	}
 
 	/** Extracts the check box state of a given tree node. */
-	private boolean isChecked(final DefaultMutableTreeNode node) {
+	private boolean isChecked(final TreeNode node) {
 		final CheckBoxNodeData data = getData(node);
 		if (data == null) return false;
 		return data.isChecked();
@@ -368,14 +366,14 @@ public class WatchEventsFrame extends JFrame implements ActionListener,
 	 * given object is not a tree node, the node is not of the proper type, or the
 	 * node has no check box node data.
 	 */
-	private CheckBoxNodeData getData(final DefaultMutableTreeNode node) {
-		final Object userObject = node.getUserObject();
+	private CheckBoxNodeData getData(final TreeNode node) {
+		final Object userObject = ((DefaultMutableTreeNode) node).getUserObject();
 		if (!(userObject instanceof CheckBoxNodeData)) return null;
 		return (CheckBoxNodeData) userObject;
 	}
 
 	/** Recursively toggles the check box state of the given subtree. */
-	private boolean toggle(final DefaultMutableTreeNode node,
+	private boolean toggle(final TreeNode node,
 		final boolean checked)
 	{
 		final CheckBoxNodeData data = getData(node);
@@ -386,18 +384,15 @@ public class WatchEventsFrame extends JFrame implements ActionListener,
 				anyChanged = true;
 			}
 		}
-		for (final DefaultMutableTreeNode child : children(node)) {
+		for (final TreeNode child : children(node)) {
 			final boolean changed = toggle(child, checked);
 			if (changed) anyChanged = true;
 		}
 		return anyChanged;
 	}
 
-	private Iterable<DefaultMutableTreeNode> children(
-		final DefaultMutableTreeNode node)
-	{
-		@SuppressWarnings("unchecked")
-		final Enumeration<DefaultMutableTreeNode> en = node.children();
+	private Iterable<? extends TreeNode> children(final TreeNode node) {
+		final Enumeration<? extends TreeNode> en = node.children();
 		return new IteratorPlus<>(en);
 	}
 
