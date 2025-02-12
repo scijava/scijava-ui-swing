@@ -31,6 +31,7 @@ package org.scijava.ui.swing.viewer.plot.jfreechart;
 
 import org.scijava.plot.LineStyle;
 import org.scijava.plot.MarkerStyle;
+import org.scijava.plot.PlotService;
 import org.scijava.plot.SeriesStyle;
 import org.jfree.chart.renderer.AbstractRenderer;
 import org.jfree.chart.renderer.category.LineAndShapeRenderer;
@@ -58,7 +59,7 @@ class RendererModifier {
 			return;
 		setSeriesColor(index, style.getColor());
 		setSeriesLineStyle(index, style.getLineStyle());
-		setSeriesMarkerStyle(index, style.getMarkerStyle());
+		setSeriesMarkerStyle(index, style.getMarkerStyle(), style.getMarkerSize());
 	}
 
 	public void setSeriesColor(int index, ColorRGB color) {
@@ -74,7 +75,11 @@ class RendererModifier {
 	}
 
 	public void setSeriesMarkerStyle(int index, MarkerStyle style) {
-		AwtMarkerStyles marker = AwtMarkerStyles.getInstance(style);
+		setSeriesMarkerStyle(index, style, PlotService.DEFAULT_MARKER_SIZE);
+	}
+
+	public void setSeriesMarkerStyle(int index, MarkerStyle style, double size) {
+		AwtMarkerStyles marker = AwtMarkerStyles.getInstance(style, size);
 		setSeriesShapesVisible(index, marker.isVisible());
 		setSeriesShapesFilled(index, marker.isFilled());
 		renderer.setSeriesShape(index, marker.getShape());

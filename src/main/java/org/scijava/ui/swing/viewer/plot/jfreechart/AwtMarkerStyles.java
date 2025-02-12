@@ -42,6 +42,8 @@ import java.awt.geom.Rectangle2D;
 
 class AwtMarkerStyles {
 
+	private static final double DEFAULT_SIZE = 3.0;
+
 	private final boolean visible;
 
 	private final boolean filled;
@@ -67,62 +69,66 @@ class AwtMarkerStyles {
 	}
 
 	public static AwtMarkerStyles getInstance(MarkerStyle style) {
+		return getInstance(style, DEFAULT_SIZE);
+	}
+
+	public static AwtMarkerStyles getInstance(MarkerStyle style, double size) {
 		if(style != null)
 			switch (style) {
 				case NONE:
 					return none;
 				case PLUS:
-					return plus;
+					return plus(size);
 				case X:
-					return x;
+					return x(size);
 				case STAR:
-					return star;
+					return star(size);
 				case SQUARE:
-					return square;
+					return square(size);
 				case FILLEDSQUARE:
-					return filledSquare;
+					return filledSquare(size);
 				case CIRCLE:
-					return circle;
+					return circle(size);
 				case FILLEDCIRCLE:
-					return filledCircle;
+					return filledCircle(size);
 			}
-		return square;
+		return square(size);
 	}
 
 	// --- Helper Constants ---
 
 	private static AwtMarkerStyles none = new AwtMarkerStyles(false, false, null);
 
-	private static AwtMarkerStyles plus = new AwtMarkerStyles(true, false, Shapes.plus);
+	private static AwtMarkerStyles plus(double size) {return new AwtMarkerStyles(true, false, Shapes.plus(size));}
 
-	private static AwtMarkerStyles x = new AwtMarkerStyles(true, false, Shapes.x);
+	private static AwtMarkerStyles x(double size) {return new AwtMarkerStyles(true, false, Shapes.x(size));}
 
-	private static AwtMarkerStyles star = new AwtMarkerStyles(true, false, Shapes.star);
+	private static AwtMarkerStyles star(double size) {return new AwtMarkerStyles(true, false, Shapes.star(size));}
 
-	private static AwtMarkerStyles square = new AwtMarkerStyles(true, false, Shapes.square);
+	private static AwtMarkerStyles square(double size) {return new AwtMarkerStyles(true, false, Shapes.square(size));}
 
-	private static AwtMarkerStyles filledSquare = new AwtMarkerStyles(true, true, Shapes.square);
+	private static AwtMarkerStyles filledSquare(double size) {return new AwtMarkerStyles(true, true, Shapes.square(size));}
 
-	private static AwtMarkerStyles circle = new AwtMarkerStyles(true, false, Shapes.circle);
+	private static AwtMarkerStyles circle(double size) {return new AwtMarkerStyles(true, false, Shapes.circle(size));}
 
-	private static AwtMarkerStyles filledCircle = new AwtMarkerStyles(true, true, Shapes.circle);
+	private static AwtMarkerStyles filledCircle(double size) {return new AwtMarkerStyles(true, true, Shapes.circle(size));}
 
 
 	static private class Shapes {
 
-		private static Shape x = getAwtXShape();
+		private static Shape x(double size) {return getAwtXShape(size);}
 
-		private static Shape plus = getAwtPlusShape();
+		private static Shape plus(double size) {return getAwtPlusShape(size);}
 
-		private static Shape star = getAwtStarShape();
+		private static Shape star(double size) {return getAwtStarShape(size);}
 
-		private static Shape square = new Rectangle2D.Double(-3.0, -3.0, 6.0, 6.0);
+		private static Shape square(double size) {return getAwtSquareShape(size);}
 
-		private static Shape circle = new Ellipse2D.Double(-3.0, -3.0, 6.0, 6.0);
+		private static Shape circle(double size) {return getAwtCircleShape(size);}
 
-		private static Shape getAwtXShape() {
+		private static Shape getAwtXShape(double size) {
 			final Path2D p = new Path2D.Double();
-			final double s = 3.0;
+			final double s = size;
 			p.moveTo(-s, -s);
 			p.lineTo(s, s);
 			p.moveTo(s, -s);
@@ -130,9 +136,9 @@ class AwtMarkerStyles {
 			return p;
 		}
 
-		private static Shape getAwtPlusShape() {
+		private static Shape getAwtPlusShape(double size) {
 			final Path2D p = new Path2D.Double();
-			final double t = 4.0;
+			final double t = size + 1;
 			p.moveTo(0, -t);
 			p.lineTo(0, t);
 			p.moveTo(t, 0);
@@ -140,19 +146,31 @@ class AwtMarkerStyles {
 			return p;
 		}
 
-		private static Shape getAwtStarShape() {
+		private static Shape getAwtStarShape(double size) {
 			final Path2D p = new Path2D.Double();
-			final double s = 3.0;
+			final double s = size;
 			p.moveTo(-s, -s);
 			p.lineTo(s, s);
 			p.moveTo(s, -s);
 			p.lineTo(-s, s);
-			final double t = 4.0;
+			final double t = size + 1;
 			p.moveTo(0, -t);
 			p.lineTo(0, t);
 			p.moveTo(t, 0);
 			p.lineTo(-t, 0);
 			return p;
+		}
+
+		private static Shape getAwtSquareShape(double size) {
+			final double s = size * -1.0;
+			final double t = size * 2.0;
+			return new Rectangle2D.Double(s, s, t, t);
+		}
+
+		private static Shape getAwtCircleShape(double size) {
+			final double s = size * -1.0;
+			final double t = size * 2.0;
+			return new Ellipse2D.Double(s, s, t, t);
 		}
 
 	}
