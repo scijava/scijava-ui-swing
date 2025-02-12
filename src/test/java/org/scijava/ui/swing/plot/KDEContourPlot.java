@@ -6,7 +6,6 @@ import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.data.xy.AbstractXYDataset;
-import org.jfree.data.xy.XYDataset;
 
 import javax.swing.*;
 import java.awt.*;
@@ -30,12 +29,10 @@ public class KDEContourPlot {
 
     private static class ContourDataset extends AbstractXYDataset {
         private final List<List<Point2D>> contourLines;
-        private final List<Boolean> isFirstCluster; // Track which cluster each contour belongs to
+        private final List<Boolean> isFirstCluster;
 
         public ContourDataset(double[][] data, int gridSize, int numContours) {
-            // Calculate KDE
             double[][] density = calculateKDE(data, gridSize);
-            // Generate contour lines with cluster information
             var result = generateContours(density, numContours, data);
             this.contourLines = result.contourLines;
             this.isFirstCluster = result.isFirstCluster;
@@ -49,28 +46,28 @@ public class KDEContourPlot {
         public int getSeriesCount() {
             return contourLines.size();
         }
-        
+
         @Override
         public Comparable getSeriesKey(int series) {
             return "Contour " + series;
         }
-        
+
         @Override
         public int getItemCount(int series) {
             return contourLines.get(series).size();
         }
-        
+
         @Override
         public Number getX(int series, int item) {
             return contourLines.get(series).get(item).getX();
         }
-        
+
         @Override
         public Number getY(int series, int item) {
             return contourLines.get(series).get(item).getY();
         }
     }
-    
+
     private static double[][] calculateKDE(double[][] data, int gridSize) {
         // Find data bounds
         double minX = Double.POSITIVE_INFINITY, maxX = Double.NEGATIVE_INFINITY;
@@ -126,8 +123,21 @@ public class KDEContourPlot {
         }
     }
 
+    private static Point2D interpolate(double x1, double y1, double v1,
+                                       double x2, double y2, double v2,
+                                       double level) {
+        if (Math.abs(v1 - v2) < 1e-10) {
+            return new Point2D.Double(x1, y1);
+        }
+        double t = (level - v1) / (v2 - v1);
+        return new Point2D.Double(
+          x1 + t * (x2 - x1),
+          y1 + t * (y2 - y1)
+        );
+    }
+
     private static ContourResult generateContours(double[][] density, int numContours, double[][] originalData) {
-        List<List<Point2D>> contourLines = new ArrayList<>();
+        List<List<Point2D>> allContourLines = new ArrayList<>();
         List<Boolean> isFirstCluster = new ArrayList<>();
         double maxDensity = Arrays.stream(density)
           .flatMapToDouble(Arrays::stream)
@@ -137,39 +147,146 @@ public class KDEContourPlot {
         // For each contour level
         for (int i = 1; i <= numContours; i++) {
             double level = maxDensity * i / (numContours + 1);
-            List<Point2D> points = new ArrayList<>();
+            List<List<Point2D>> contoursAtLevel = new ArrayList<>();
 
-            // Collect all points for this contour
+            boolean[][] visited = new boolean[density.length][density[0].length];
+
+            // Scan for contour starting points
             for (int x = 0; x < density.length - 1; x++) {
                 for (int y = 0; y < density[0].length - 1; y++) {
-                    boolean bl = density[x][y] >= level;
-                    boolean br = density[x+1][y] >= level;
-                    boolean tr = density[x+1][y+1] >= level;
-                    boolean tl = density[x][y+1] >= level;
-
-                    int caseNum = (bl ? 1 : 0) + (br ? 2 : 0) +
-                      (tr ? 4 : 0) + (tl ? 8 : 0);
-
-                    if (caseNum != 0 && caseNum != 15) {
-                        points.add(new Point2D.Double(x + 0.5, y + 0.5));
+                    if (!visited[x][y]) {
+                        List<Point2D> contour = traceContour(density, level, x, y, visited);
+                        if (!contour.isEmpty()) {
+                            contoursAtLevel.add(contour);
+                        }
                     }
                 }
             }
 
-            if (!points.isEmpty()) {
-                // Order points to form a continuous contour
-                List<Point2D> orderedPoints = orderContourPoints(points);
-                contourLines.add(orderedPoints);
+            // Process each separate contour at this level
+            for (List<Point2D> contour : contoursAtLevel) {
+                if (contour.size() >= 4) {  // Filter out tiny contours
+                    Point2D centerPoint = findContourCenter(contour);
+                    boolean belongsToFirstCluster = determineCluster(centerPoint, originalData);
 
-                // Determine which cluster this contour belongs to
-                Point2D centerPoint = findContourCenter(orderedPoints);
-                boolean belongsToFirstCluster = determineCluster(centerPoint, originalData);
-                isFirstCluster.add(belongsToFirstCluster);
+                    allContourLines.add(contour);
+                    isFirstCluster.add(belongsToFirstCluster);
+                }
             }
         }
 
-        return new ContourResult(contourLines, isFirstCluster);
+        return new ContourResult(allContourLines, isFirstCluster);
     }
+    private static List<Point2D> traceContour(double[][] density, double level,
+                                              int startX, int startY,
+                                              boolean[][] visited) {
+        List<Point2D> contour = new ArrayList<>();
+        Queue<Point2D> queue = new LinkedList<>();
+        Set<String> visitedEdges = new HashSet<>();
+
+        // Initialize with start point
+        addContourSegments(density, level, startX, startY, queue, visitedEdges);
+
+        while (!queue.isEmpty()) {
+            Point2D point = queue.poll();
+            contour.add(point);
+
+            // Find grid cell containing this point
+            int x = (int) Math.floor(point.getX());
+            int y = (int) Math.floor(point.getY());
+
+            // Mark as visited
+            if (x >= 0 && x < visited.length - 1 &&
+              y >= 0 && y < visited[0].length - 1) {
+                visited[x][y] = true;
+
+                // Add adjacent segments
+                addContourSegments(density, level, x, y, queue, visitedEdges);
+            }
+        }
+
+        return contour;
+    }
+
+    private static void addContourSegments(double[][] density, double level,
+                                           int x, int y,
+                                           Queue<Point2D> queue,
+                                           Set<String> visitedEdges) {
+        if (x < 0 || x >= density.length - 1 ||
+          y < 0 || y >= density[0].length - 1) {
+            return;
+        }
+
+        double v00 = density[x][y];
+        double v10 = density[x+1][y];
+        double v11 = density[x+1][y+1];
+        double v01 = density[x][y+1];
+
+        // For each edge of the cell
+        List<Point2D> intersections = new ArrayList<>();
+
+        // Bottom edge
+        if ((v00 < level && v10 >= level) || (v00 >= level && v10 < level)) {
+            String edge = String.format("%d,%d,B", x, y);
+            if (!visitedEdges.contains(edge)) {
+                intersections.add(interpolate(x, y, v00, x+1, y, v10, level));
+                visitedEdges.add(edge);
+            }
+        }
+
+        // Right edge
+        if ((v10 < level && v11 >= level) || (v10 >= level && v11 < level)) {
+            String edge = String.format("%d,%d,R", x+1, y);
+            if (!visitedEdges.contains(edge)) {
+                intersections.add(interpolate(x+1, y, v10, x+1, y+1, v11, level));
+                visitedEdges.add(edge);
+            }
+        }
+
+        // Top edge
+        if ((v01 < level && v11 >= level) || (v01 >= level && v11 < level)) {
+            String edge = String.format("%d,%d,T", x, y+1);
+            if (!visitedEdges.contains(edge)) {
+                intersections.add(interpolate(x, y+1, v01, x+1, y+1, v11, level));
+                visitedEdges.add(edge);
+            }
+        }
+
+        // Left edge
+        if ((v00 < level && v01 >= level) || (v00 >= level && v01 < level)) {
+            String edge = String.format("%d,%d,L", x, y);
+            if (!visitedEdges.contains(edge)) {
+                intersections.add(interpolate(x, y, v00, x, y+1, v01, level));
+                visitedEdges.add(edge);
+            }
+        }
+
+        // Add all found intersections to the queue
+        queue.addAll(intersections);
+    }
+
+    private static Point2D findContourCenter(List<Point2D> points) {
+        double sumX = 0, sumY = 0;
+        for (Point2D point : points) {
+            sumX += point.getX();
+            sumY += point.getY();
+        }
+        return new Point2D.Double(sumX / points.size(), sumY / points.size());
+    }
+
+    private static boolean determineCluster(Point2D point, double[][] originalData) {
+        // Calculate distance to cluster centers
+        double[] center1 = {2, 2}; // Approximate center of first cluster
+        double[] center2 = {4, 4}; // Approximate center of second cluster
+
+        double dist1 = Math.sqrt(Math.pow(point.getX() - center1[0], 2) +
+          Math.pow(point.getY() - center1[1], 2));
+        double dist2 = Math.sqrt(Math.pow(point.getX() - center2[0], 2) +
+          Math.pow(point.getY() - center2[1], 2));
+
+        return dist1 < dist2;
+    }
+
     private static List<Point2D> orderContourPoints(List<Point2D> points) {
         List<Point2D> ordered = new ArrayList<>();
         Set<Point2D> remaining = new HashSet<>(points);
@@ -193,28 +310,6 @@ public class KDEContourPlot {
         }
 
         return ordered;
-    }
-
-    private static Point2D findContourCenter(List<Point2D> points) {
-        double sumX = 0, sumY = 0;
-        for (Point2D point : points) {
-            sumX += point.getX();
-            sumY += point.getY();
-        }
-        return new Point2D.Double(sumX / points.size(), sumY / points.size());
-    }
-
-    private static boolean determineCluster(Point2D point, double[][] originalData) {
-        // Calculate distance to cluster centers
-        double[] center1 = {2, 2}; // Approximate center of first cluster
-        double[] center2 = {4, 4}; // Approximate center of second cluster
-
-        double dist1 = Math.sqrt(Math.pow(point.getX() - center1[0], 2) +
-          Math.pow(point.getY() - center1[1], 2));
-        double dist2 = Math.sqrt(Math.pow(point.getX() - center2[0], 2) +
-          Math.pow(point.getY() - center2[1], 2));
-
-        return dist1 < dist2;
     }
 
     private static double calculateSD(double[][] data, int dimension) {
@@ -253,31 +348,34 @@ public class KDEContourPlot {
         
         return data;
     }
-    
+
     private static ChartPanel createChartPanel(double[][] data) {
-        XYDataset dataset = new ContourDataset(data, 50, 8);
-        
+        ContourDataset dataset = new ContourDataset(data, 50, 8);
+
         JFreeChart chart = ChartFactory.createXYLineChart(
-            "2D KDE Contour Plot",
-            "X",
-            "Y",
-            dataset
+          "2D KDE Contour Plot",
+          "X",
+          "Y",
+          dataset
         );
-        
+
         XYPlot plot = chart.getXYPlot();
         XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer();
-        
-        // Style each contour line differently
+
+        // Style contours based on cluster
+        Color cluster1Color = Color.BLUE;
+        Color cluster2Color = Color.ORANGE;
+
         for (int i = 0; i < dataset.getSeriesCount(); i++) {
             renderer.setSeriesLinesVisible(i, true);
             renderer.setSeriesShapesVisible(i, false);
-            float hue = (float)i / dataset.getSeriesCount();
-            renderer.setSeriesPaint(i, Color.getHSBColor(hue, 0.8f, 0.8f));
+            renderer.setSeriesPaint(i, dataset.isFirstCluster(i) ?
+              cluster1Color : cluster2Color);
             renderer.setSeriesStroke(i, new BasicStroke(2.0f));
         }
-        
+
         plot.setRenderer(renderer);
-        
+
         return new ChartPanel(chart);
     }
 }
