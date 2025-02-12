@@ -177,6 +177,14 @@
 			<artifactId>tablesaw-jsplot</artifactId>
 			<version>${tablesaw-jsplot.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>org.jzy3d</groupId>
+			<artifactId>jzy3d-core</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.jzy3d</groupId>
+			<artifactId>jzy3d-native-jogl-awt</artifactId>
+		</dependency>
 
 		<!-- Test scope dependencies -->
 		<dependency>
