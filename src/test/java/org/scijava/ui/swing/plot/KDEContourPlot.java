@@ -27,17 +27,24 @@ public class KDEContourPlot {
         frame.setSize(800, 600);
         frame.setVisible(true);
     }
-    
+
     private static class ContourDataset extends AbstractXYDataset {
         private final List<List<Point2D>> contourLines;
-        
+        private final List<Boolean> isFirstCluster; // Track which cluster each contour belongs to
+
         public ContourDataset(double[][] data, int gridSize, int numContours) {
             // Calculate KDE
             double[][] density = calculateKDE(data, gridSize);
-            // Generate contour lines
-            this.contourLines = generateContours(density, numContours);
+            // Generate contour lines with cluster information
+            var result = generateContours(density, numContours, data);
+            this.contourLines = result.contourLines;
+            this.isFirstCluster = result.isFirstCluster;
         }
-        
+
+        public boolean isFirstCluster(int series) {
+            return isFirstCluster.get(series);
+        }
+
         @Override
         public int getSeriesCount() {
             return contourLines.size();
@@ -108,46 +115,108 @@ public class KDEContourPlot {
         
         return density;
     }
-    
-    private static List<List<Point2D>> generateContours(double[][] density, int numContours) {
+
+    private static class ContourResult {
+        List<List<Point2D>> contourLines;
+        List<Boolean> isFirstCluster;
+
+        ContourResult(List<List<Point2D>> contourLines, List<Boolean> isFirstCluster) {
+            this.contourLines = contourLines;
+            this.isFirstCluster = isFirstCluster;
+        }
+    }
+
+    private static ContourResult generateContours(double[][] density, int numContours, double[][] originalData) {
         List<List<Point2D>> contourLines = new ArrayList<>();
+        List<Boolean> isFirstCluster = new ArrayList<>();
         double maxDensity = Arrays.stream(density)
-            .flatMapToDouble(Arrays::stream)
-            .max()
-            .orElse(1.0);
-            
+          .flatMapToDouble(Arrays::stream)
+          .max()
+          .orElse(1.0);
+
         // For each contour level
         for (int i = 1; i <= numContours; i++) {
             double level = maxDensity * i / (numContours + 1);
-            List<Point2D> contourLine = new ArrayList<>();
-            
-            // Simple marching squares implementation
+            List<Point2D> points = new ArrayList<>();
+
+            // Collect all points for this contour
             for (int x = 0; x < density.length - 1; x++) {
                 for (int y = 0; y < density[0].length - 1; y++) {
-                    // Check if contour passes through this cell
                     boolean bl = density[x][y] >= level;
                     boolean br = density[x+1][y] >= level;
                     boolean tr = density[x+1][y+1] >= level;
                     boolean tl = density[x][y+1] >= level;
-                    
-                    int caseNum = (bl ? 1 : 0) + (br ? 2 : 0) + 
-                                (tr ? 4 : 0) + (tl ? 8 : 0);
-                    
+
+                    int caseNum = (bl ? 1 : 0) + (br ? 2 : 0) +
+                      (tr ? 4 : 0) + (tl ? 8 : 0);
+
                     if (caseNum != 0 && caseNum != 15) {
-                        // Add interpolated points for this cell
-                        contourLine.add(new Point2D.Double(x + 0.5, y + 0.5));
+                        points.add(new Point2D.Double(x + 0.5, y + 0.5));
                     }
                 }
             }
-            
-            if (!contourLine.isEmpty()) {
-                contourLines.add(contourLine);
+
+            if (!points.isEmpty()) {
+                // Order points to form a continuous contour
+                List<Point2D> orderedPoints = orderContourPoints(points);
+                contourLines.add(orderedPoints);
+
+                // Determine which cluster this contour belongs to
+                Point2D centerPoint = findContourCenter(orderedPoints);
+                boolean belongsToFirstCluster = determineCluster(centerPoint, originalData);
+                isFirstCluster.add(belongsToFirstCluster);
             }
         }
-        
-        return contourLines;
+
+        return new ContourResult(contourLines, isFirstCluster);
     }
-    
+    private static List<Point2D> orderContourPoints(List<Point2D> points) {
+        List<Point2D> ordered = new ArrayList<>();
+        Set<Point2D> remaining = new HashSet<>(points);
+
+        // Start with the leftmost point
+        Point2D current = points.stream()
+          .min(Comparator.comparingDouble(Point2D::getX))
+          .orElseThrow();
+        ordered.add(current);
+        remaining.remove(current);
+
+        while (!remaining.isEmpty()) {
+            Point2D finalCurrent = current;
+            current = remaining.stream()
+              .min(Comparator.comparingDouble(p ->
+                finalCurrent.distance(p)))
+              .orElseThrow();
+
+            ordered.add(current);
+            remaining.remove(current);
+        }
+
+        return ordered;
+    }
+
+    private static Point2D findContourCenter(List<Point2D> points) {
+        double sumX = 0, sumY = 0;
+        for (Point2D point : points) {
+            sumX += point.getX();
+            sumY += point.getY();
+        }
+        return new Point2D.Double(sumX / points.size(), sumY / points.size());
+    }
+
+    private static boolean determineCluster(Point2D point, double[][] originalData) {
+        // Calculate distance to cluster centers
+        double[] center1 = {2, 2}; // Approximate center of first cluster
+        double[] center2 = {4, 4}; // Approximate center of second cluster
+
+        double dist1 = Math.sqrt(Math.pow(point.getX() - center1[0], 2) +
+          Math.pow(point.getY() - center1[1], 2));
+        double dist2 = Math.sqrt(Math.pow(point.getX() - center2[0], 2) +
+          Math.pow(point.getY() - center2[1], 2));
+
+        return dist1 < dist2;
+    }
+
     private static double calculateSD(double[][] data, int dimension) {
         double mean = 0;
         for (double[] point : data) {
