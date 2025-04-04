@@ -91,6 +91,10 @@ class AwtMarkerStyles {
 					return circle(size);
 				case FILLEDCIRCLE:
 					return filledCircle(size);
+				case DIAMOND:
+					return diamond(size);
+				case FILLEDDIAMOND:
+					return filledDiamond(size);
 				case TRIANGLE:
 					return triangle(size);
 				case FILLEDTRIANGLE:
@@ -117,6 +121,10 @@ class AwtMarkerStyles {
 
 	private static AwtMarkerStyles filledCircle(double size) {return new AwtMarkerStyles(true, true, Shapes.circle(size));}
 
+	private static AwtMarkerStyles diamond(double size) {return new AwtMarkerStyles(true, false, Shapes.diamond(size));}
+
+	private static AwtMarkerStyles filledDiamond(double size) {return new AwtMarkerStyles(true, true, Shapes.diamond(size));}
+
 	private static AwtMarkerStyles triangle(double size) {return new AwtMarkerStyles(true, false, Shapes.triangle(size));}
 
 	private static AwtMarkerStyles filledTriangle(double size) {return new AwtMarkerStyles(true, true, Shapes.triangle(size));}
@@ -133,6 +141,8 @@ class AwtMarkerStyles {
 		private static Shape square(double size) {return getAwtSquareShape(size);}
 
 		private static Shape circle(double size) {return getAwtCircleShape(size);}
+
+		private static Shape diamond(double size) {return getAwtDiamondShape(size);}
 
 		private static Shape triangle(double size) {return getAwtTriangleShape(size);}
 
@@ -181,6 +191,18 @@ class AwtMarkerStyles {
 			final double s = size;
 			final double t = size * 2.0;
 			return new Ellipse2D.Double(-s, -s, t, t);
+		}
+
+		private static Shape getAwtDiamondShape(double size) {
+			final Path2D p = new Path2D.Double();
+			final double s = size;
+			p.moveTo(0, -s);
+			p.lineTo(-s, 0);
+			p.lineTo(0, s);
+			p.lineTo(s, 0);
+			p.lineTo(0, -s);
+			return p;
+
 		}
 
 		private static Shape getAwtTriangleShape(double size) {
