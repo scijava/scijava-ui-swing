@@ -29,6 +29,7 @@
 
 package org.scijava.ui.swing.widget;
 
+import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
@@ -47,6 +48,32 @@ import org.scijava.widget.WidgetModel;
 public class SwingInputPanel extends AbstractInputPanel<JPanel, JPanel> {
 
 	private JPanel uiComponent;
+
+	/** OK button to enable/disable based on overall validation state, or null. */
+	private JButton okButton;
+
+	// -- SwingInputPanel methods --
+
+	/**
+	 * Sets the OK button that should be enabled or disabled to reflect whether
+	 * all widget values are currently valid. Pass {@code null} to detach.
+	 */
+	void setOkButton(final JButton okButton) {
+		this.okButton = okButton;
+	}
+
+	/**
+	 * Enables the OK button if all widgets are valid, disables it otherwise.
+	 * Does nothing if no OK button has been set via {@link #setOkButton}.
+	 */
+	void updateOkButton() {
+		if (okButton == null) return;
+		final boolean allValid = widgets.values().stream().allMatch(w -> {
+			final String msg = w.get().getValidationMessage();
+			return msg == null || msg.isEmpty();
+		});
+		okButton.setEnabled(allValid);
+	}
 
 	// -- InputPanel methods --
 
@@ -69,6 +96,12 @@ public class SwingInputPanel extends AbstractInputPanel<JPanel, JPanel> {
 			// widget occupies entire row
 			getComponent().add(widgetPane, "span");
 		}
+	}
+
+	@Override
+	public void refresh() {
+		super.refresh(); // refreshWidget() on each widget, which applies validation styling
+		updateOkButton();
 	}
 
 	@Override

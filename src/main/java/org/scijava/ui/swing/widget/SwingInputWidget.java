@@ -29,8 +29,15 @@
 
 package org.scijava.ui.swing.widget;
 
-import javax.swing.JComponent;
-import javax.swing.JPanel;
+import java.awt.Color;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import javax.swing.*;
+import javax.swing.border.BevelBorder;
+import javax.swing.border.Border;
 
 import net.miginfocom.swing.MigLayout;
 
@@ -49,6 +56,7 @@ public abstract class SwingInputWidget<T> extends
 {
 
 	private JPanel uiComponent;
+	private Set<JComponent> tooltipped = new HashSet<>();
 
 	// -- WrapperPlugin methods --
 
@@ -59,6 +67,14 @@ public abstract class SwingInputWidget<T> extends
 		final MigLayout layout =
 			new MigLayout("fillx,ins 3 0 3 0", "[fill,grow|pref]");
 		uiComponent.setLayout(layout);
+	}
+
+	// -- InputWidget methods --
+
+	@Override
+	public void refreshWidget() {
+		super.refreshWidget();
+		refreshValidation();
 	}
 
 	// -- UIComponent methods --
@@ -84,9 +100,25 @@ public abstract class SwingInputWidget<T> extends
 
 	/** Assigns the model's description as the given component's tool tip. */
 	protected void setToolTip(final JComponent c) {
-		final String desc = get().getItem().getDescription();
-		if (desc == null || desc.isEmpty()) return;
-		c.setToolTipText(desc);
+		tooltipped.add(c);
+	}
+
+	/**
+	 * Updates the widget's border and tooltip to reflect the current validation
+	 * state. A red border and tooltip showing the error message are applied when
+	 * the model's validation message is non-null; both are cleared when valid.
+	 * <p>
+	 * Must be called on the Swing EDT.
+	 * </p>
+	 */
+	protected void refreshValidation() {
+		final String message = get().getValidationMessage();
+		final boolean valid = message == null || message.isEmpty();
+		final JPanel p = getComponent();
+		final Color borderColor = valid ? p.getBackground() : Color.RED;
+		final String tip = valid ? get().getItem().getDescription() : message;
+		p.setBorder(BorderFactory.createLineBorder(borderColor, 1));
+		tooltipped.forEach(c -> c.setToolTipText(tip));
 	}
 
 }

@@ -37,10 +37,12 @@ import java.awt.Window;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
+import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.UIManager;
 import javax.swing.WindowConstants;
 import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
@@ -292,6 +294,17 @@ public class SwingDialog {
 		return optionPane.isVisible();
 	}
 
+	/**
+	 * Gets the OK button of this dialog.
+	 *
+	 * @return the OK button, or {@code null} if not found (e.g., because the
+	 *         dialog does not have an OK button).
+	 */
+	public JButton getOkButton() {
+		final String okText = UIManager.getString("OptionPane.okButtonText");
+		return findButton(buttons, okText);
+	}
+
 	// -- Helper methods --
 
 	private void rebuildPane(final boolean scrollBars) {
@@ -337,6 +350,20 @@ public class SwingDialog {
 		else {
 			buttons = buttonPane;
 		}
+	}
+
+	/** Recursively searches a component tree for a {@link JButton} by label. */
+	private JButton findButton(final Component c, final String text) {
+		if (c instanceof JButton && text.equals(((JButton) c).getText())) {
+			return (JButton) c;
+		}
+		if (c instanceof Container) {
+			for (final Component child : ((Container) c).getComponents()) {
+				final JButton found = findButton(child, text);
+				if (found != null) return found;
+			}
+		}
+		return null;
 	}
 
 	/**
