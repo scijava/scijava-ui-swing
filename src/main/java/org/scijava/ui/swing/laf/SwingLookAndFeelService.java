@@ -35,6 +35,8 @@ import com.formdev.flatlaf.FlatIntelliJLaf;
 import com.formdev.flatlaf.FlatLaf;
 import com.formdev.flatlaf.FlatLightLaf;
 
+import java.awt.EventQueue;
+
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -112,14 +114,16 @@ public class SwingLookAndFeelService extends AbstractService implements
 		if (factories.containsKey(lookAndFeel)) {
 			// This L+F has a dedicated factory.
 			final LookAndFeel laf = factories.get(lookAndFeel).get();
-			try {
-				UIManager.setLookAndFeel(laf);
-			}
-			catch (final UnsupportedLookAndFeelException exc) {
-				attemptToRecover();
-				throw new IllegalArgumentException(//
-					"Invalid look and feel: " + lookAndFeel, exc);
-			}
+			EventQueue.invokeLater(() -> {
+				try {
+					UIManager.setLookAndFeel(laf);
+				}
+				catch (final UnsupportedLookAndFeelException exc) {
+					attemptToRecover();
+					throw new IllegalArgumentException(//
+						"Invalid look and feel: " + lookAndFeel, exc);
+				}
+			});
 		}
 		else {
 			// No dedicated factory; check for a registered L+F with a matching name.
@@ -128,23 +132,25 @@ public class SwingLookAndFeelService extends AbstractService implements
 			// If a L+F was found, use it; otherwise assume the argument is a class.
 			final String className = info == null ? lookAndFeel : info.getClassName();
 
-			try {
-				UIManager.setLookAndFeel(className);
-			}
-			catch (ClassNotFoundException | InstantiationException
-					| IllegalAccessException | UnsupportedLookAndFeelException exc)
-			{
-				attemptToRecover();
-				throw new IllegalArgumentException(//
-					"Invalid look and feel: " + lookAndFeel, exc);
-			}
+			EventQueue.invokeLater(() -> {
+				try {
+					UIManager.setLookAndFeel(className);
+				}
+				catch (ClassNotFoundException | InstantiationException
+						| IllegalAccessException | UnsupportedLookAndFeelException exc)
+				{
+					attemptToRecover();
+					throw new IllegalArgumentException(//
+						"Invalid look and feel: " + lookAndFeel, exc);
+				}
+
+				// Update all existing Swing windows to the new L+F.
+				FlatLaf.updateUI();
+
+				// Persist L+F setting for next time.
+				if (prefs != null) prefs.put(getClass(), LAF_PREF_KEY, lookAndFeel);
+			});
 		}
-
-		// Update all existing Swing windows to the new L+F.
-		FlatLaf.updateUI();
-
-		// Persist L+F setting for next time.
-		if (prefs != null) prefs.put(getClass(), LAF_PREF_KEY, lookAndFeel);
 	}
 
 	/**
