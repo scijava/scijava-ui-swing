@@ -34,7 +34,6 @@ import org.scijava.event.EventHandler;
 import org.scijava.task.Task;
 import org.scijava.task.event.TaskEvent;
 
-import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -44,7 +43,6 @@ import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.SwingConstants;
-import javax.swing.UIManager;
 import javax.swing.border.EmptyBorder;
 import javax.swing.plaf.basic.BasicProgressBarUI;
 import javax.swing.table.AbstractTableModel;
@@ -148,6 +146,8 @@ public class SwingTaskMonitorComponent {
 	 */
 	private double globalProgression = 0;
 
+	private boolean rowHeightInitialized = false;
+
 	/**
 	 * Constructs a Swing Task Monitor component - clickable circular progress bar
 	 * the component can be accessed with
@@ -208,7 +208,6 @@ public class SwingTaskMonitorComponent {
 		taskTable.setShowGrid(false);
 		taskTable.setIntercellSpacing(new Dimension(0, 0));
 		taskTable.setTableHeader(null); // no header
-		taskTable.setRowHeight(65);
 		taskTable.setRowMargin(2);
 		taskTable.setDefaultRenderer(Task.class, new TaskRenderer(false));
 		// restrict size of second column to the size of the stop icon
@@ -264,6 +263,12 @@ public class SwingTaskMonitorComponent {
 			taskTableModel.removeTask(task);
 		} else {
 			taskTableModel.addOrUpdate(task);
+		}
+		if (!rowHeightInitialized) {
+			rowHeightInitialized = true;
+			TableCellRenderer renderer = taskTable.getDefaultRenderer(Task.class);
+			Component c = renderer.getTableCellRendererComponent(taskTable, task, false, false, 0, 0);
+			taskTable.setRowHeight(c.getPreferredSize().height + taskTable.getRowMargin());
 		}
 		// globalProgression has been updated during taskTableModel update
 		globalProgressBar.setValue((int)(globalProgression*100));
@@ -483,8 +488,7 @@ public class SwingTaskMonitorComponent {
 		JLabel labelTop = new JLabel(); // top label : task name and status
 		JProgressBar progressBar = new JProgressBar(); // standard linear progress bar
 		JLabel labelBottom = new JLabel(); // bottom label : task completion, and optionally time left
-		Icon errorIcon = UIManager.getIcon("OptionPane.errorIcon"); // icon for canceling task
-		JLabel cancelTask; // container for errorIcon
+		JLabel cancelTask; // cancel icon
 
 		public TaskRenderer(boolean isBordered) {
 			labelTop.setVerticalTextPosition(SwingConstants.TOP);
@@ -497,9 +501,8 @@ public class SwingTaskMonitorComponent {
 			cell.add(labelTop,"height ::14, span");
 			cell.add(progressBar,"height ::3, span");
 			cell.add(labelBottom, "height ::14");
-			cancelTask = new JLabel(errorIcon, SwingConstants.CENTER);
+			cancelTask = new JLabel("\u2715", SwingConstants.CENTER);
 			cancelTask.setOpaque(true);
-			cancelTask.setBackground(cell.getBackground());
 		}
 
 		@Override
@@ -513,6 +516,7 @@ public class SwingTaskMonitorComponent {
 			labelTop.setForeground(table.getForeground());
 			labelBottom.setForeground(table.getForeground());
 			cancelTask.setBackground(table.getBackground());
+			cancelTask.setForeground(table.getForeground());
 			if (column==1) {
 				return cancelTask; // second column : stop icon
 			}
