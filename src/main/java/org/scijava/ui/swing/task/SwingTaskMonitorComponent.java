@@ -50,7 +50,7 @@ import javax.swing.plaf.basic.BasicProgressBarUI;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableCellRenderer;
 import java.awt.BorderLayout;
-import java.awt.Color;
+
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Graphics;
@@ -200,7 +200,6 @@ public class SwingTaskMonitorComponent {
 		taskFrame = new JFrame("Tasks");
 		if (undecorated) {
 			taskFrame.setUndecorated(true);
-			taskFrame.setBackground(new Color(1.0f, 1.0f, 1.0f, 0.0f));
 		}
 
 		// taskTable showing all tasks, contained in taskFrame
@@ -508,6 +507,12 @@ public class SwingTaskMonitorComponent {
 			JTable table, Object tk,
 			boolean isSelected, boolean hasFocus,
 			int row, int column) {
+			// Pick up LaF colors from the table
+			cell.setBackground(table.getBackground());
+			cell.setForeground(table.getForeground());
+			labelTop.setForeground(table.getForeground());
+			labelBottom.setForeground(table.getForeground());
+			cancelTask.setBackground(table.getBackground());
 			if (column==1) {
 				return cancelTask; // second column : stop icon
 			}
