@@ -283,6 +283,7 @@ public class SwingFileListWidget extends SwingInputWidget<File[]> implements
 					.asList((Files.walk(inputFolder.toPath())
 							.filter(path -> filter.accept(path.toFile())))
 							.map(path -> path.toFile())
+							.sorted()
 							.toArray(File[]::new));
 		} catch (IOException exc) {
 			logService
