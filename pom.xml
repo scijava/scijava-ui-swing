@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.scijava</groupId>
 		<artifactId>pom-scijava</artifactId>
-		<version>43.0.0</version>
+		<version>45.1.0</version>
 		<relativePath />
 	</parent>
 
@@ -102,6 +102,7 @@
 	</ciManagement>
 
 	<properties>
+		<scijava.jvm.version>8</scijava.jvm.version>
 		<package-name>org.scijava.ui.swing</package-name>
 		<license.licenseName>bsd_2</license.licenseName>
 		<license.copyrightOwners>SciJava developers.</license.copyrightOwners>

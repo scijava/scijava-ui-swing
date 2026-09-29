@@ -1,4 +1,4 @@
-[![](https://github.com/scijava/scijava-ui-swing/actions/workflows/build-main.yml/badge.svg)](https://github.com/scijava/scijava-ui-swing/actions/workflows/build-main.yml)
+[![Build Status](https://github.com/scijava/scijava-ui-swing/actions/workflows/build.yml/badge.svg)](https://github.com/scijava/scijava-ui-swing/actions/workflows/build.yml)
 
 SciJava Swing UI components
 ---------------------------
