@@ -31,8 +31,10 @@ package org.scijava.ui.swing.task;
 import net.miginfocom.swing.MigLayout;
 import org.scijava.Context;
 import org.scijava.event.EventHandler;
+import org.scijava.log.Logger;
 import org.scijava.task.Task;
 import org.scijava.task.event.TaskEvent;
+import org.scijava.ui.swing.console.LoggingPanel;
 
 import javax.swing.JComponent;
 import javax.swing.JFrame;
@@ -58,6 +60,8 @@ import java.awt.RenderingHints;
 import java.awt.Shape;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.awt.geom.Arc2D;
 import java.awt.geom.Area;
 import java.awt.geom.Ellipse2D;
@@ -95,6 +99,14 @@ import java.util.TreeMap;
  * Second column:
  * </p>
  * <ul>
+ * <li>a log icon, clickable and which opens a window showing the output
+ * logged to the displayed task's {@link Task#log() logger} from then
+ * on</li>
+ * </ul>
+ * <p>
+ * Third column:
+ * </p>
+ * <ul>
  * <li>a stop icon, clickable and which calls {@link Task#cancel(String)} for
  * the displayed task</li>
  * </ul>
@@ -108,6 +120,17 @@ import java.util.TreeMap;
  */
 
 public class SwingTaskMonitorComponent {
+
+	/** Column of the {@link #taskTable} with the log icon. */
+	private static final int LOG_COLUMN = 1;
+
+	/** Column of the {@link #taskTable} with the stop icon. */
+	private static final int STOP_COLUMN = 2;
+
+	private final Context context;
+
+	/** Open log windows, by task. Accessed from the event dispatch thread only. */
+	private final Map<Task, JFrame> logFrames = new HashMap<>();
 
 	/**
 	 * Progress bar showing the global progression ( = progression of all tasks ).
@@ -169,6 +192,7 @@ public class SwingTaskMonitorComponent {
 		int size,
 		boolean undecorated) {
 		context.inject(this); // register event handler (this#onEvent)
+		this.context = context;
 
 		this.sizeGlobalProgressBar = size;
 		this.confirmBeforeCancel = confirmBeforeCancel;
@@ -210,8 +234,9 @@ public class SwingTaskMonitorComponent {
 		taskTable.setTableHeader(null); // no header
 		taskTable.setRowMargin(2);
 		taskTable.setDefaultRenderer(Task.class, new TaskRenderer(false));
-		// restrict size of second column to the size of the stop icon
-		taskTable.getColumnModel().getColumn(1).setMaxWidth(30);
+		// restrict size of icon columns to the size of the icons
+		taskTable.getColumnModel().getColumn(LOG_COLUMN).setMaxWidth(30);
+		taskTable.getColumnModel().getColumn(STOP_COLUMN).setMaxWidth(30);
 
 		// Scroll pane containing the JTable -> necessary when many tasks are displayed
 		JScrollPane scrollPane = new JScrollPane(taskTable);
@@ -222,13 +247,17 @@ public class SwingTaskMonitorComponent {
 		scrollPane.setColumnHeaderView(null);
 		taskFrame.pack();
 
-		// enable canceling when the user clicks on the second column (of index 1)
+		// show the log or cancel when the user clicks on the corresponding icon
 		taskTable.addMouseListener(new java.awt.event.MouseAdapter() {
 			@Override
 			public void mouseClicked(java.awt.event.MouseEvent evt) {
 				int row = taskTable.rowAtPoint(evt.getPoint());
 				int col = taskTable.columnAtPoint(evt.getPoint());
-				if (row >= 0 && col == 1) {
+				if (row >= 0 && col == LOG_COLUMN) {
+					Task selectedTask = taskTableModel.getTask(row);
+					if (selectedTask != null) showLog(selectedTask);
+				}
+				if (row >= 0 && col == STOP_COLUMN) {
 					Task selectedTask = taskTableModel.getTask(row);
 					if (selectedTask!=null) {
 						if (SwingTaskMonitorComponent.this.confirmBeforeCancel) {
@@ -272,6 +301,37 @@ public class SwingTaskMonitorComponent {
 		}
 		// globalProgression has been updated during taskTableModel update
 		globalProgressBar.setValue((int)(globalProgression*100));
+	}
+
+	/**
+	 * Shows a window with the output logged to the given task's logger. The
+	 * window shows output from the moment it is first opened, and remains
+	 * available after the task finishes, until closed.
+	 */
+	private void showLog(final Task task) {
+		JFrame frame = logFrames.get(task);
+		if (frame == null) {
+			final LoggingPanel panel = new LoggingPanel(context);
+			panel.setSourcesPanelVisible(false);
+			final Logger logger = task.log();
+			logger.addLogListener(panel);
+			final JFrame logFrame = new JFrame("Log: " + task.getName());
+			logFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+			logFrame.add(panel);
+			logFrame.setSize(640, 400);
+			logFrame.setLocationRelativeTo(taskFrame);
+			logFrame.addWindowListener(new WindowAdapter() {
+				@Override
+				public void windowClosed(WindowEvent e) {
+					logger.removeLogListener(panel);
+					logFrames.remove(task);
+				}
+			});
+			logFrames.put(task, logFrame);
+			frame = logFrame;
+		}
+		frame.setVisible(true);
+		frame.toFront();
 	}
 
 	/**
@@ -388,25 +448,22 @@ public class SwingTaskMonitorComponent {
 
 		@Override
 		public int getColumnCount() {
-			return 2;
+			return 3;
 		}
 
 		@Override
 		public String getColumnName(int columnIndex) {
 			switch (columnIndex) {
 				case 0: return "Task";
-				case 1: return "Stop";
+				case LOG_COLUMN: return "Log";
+				case STOP_COLUMN: return "Stop";
 			}
 			return null;
 		}
 
 		@Override
 		public Class<?> getColumnClass(int columnIndex) {
-			switch (columnIndex) {
-				case 0: return Task.class;
-				case 1: return Task.class;
-			}
-			return null;
+			return columnIndex >= 0 && columnIndex < getColumnCount() ? Task.class : null;
 		}
 
 		@Override
@@ -416,12 +473,8 @@ public class SwingTaskMonitorComponent {
 
 		@Override
 		public Object getValueAt(int rowIndex, int columnIndex) {
-			if (rowIndex<monitoredTasks.size()) {
-				Task task = monitoredTasks.get(rowIndex);
-				switch (columnIndex) {
-					case 0: return task;
-					case 1: return task;
-				}
+			if (rowIndex<monitoredTasks.size() && getColumnClass(columnIndex) != null) {
+				return monitoredTasks.get(rowIndex);
 			}
 			return null;
 		}
@@ -488,6 +541,7 @@ public class SwingTaskMonitorComponent {
 		JLabel labelTop = new JLabel(); // top label : task name and status
 		JProgressBar progressBar = new JProgressBar(); // standard linear progress bar
 		JLabel labelBottom = new JLabel(); // bottom label : task completion, and optionally time left
+		JLabel showLog; // log icon
 		JLabel cancelTask; // cancel icon
 
 		public TaskRenderer(boolean isBordered) {
@@ -501,6 +555,9 @@ public class SwingTaskMonitorComponent {
 			cell.add(labelTop,"height ::14, span");
 			cell.add(progressBar,"height ::3, span");
 			cell.add(labelBottom, "height ::14");
+			showLog = new JLabel("\u2261", SwingConstants.CENTER);
+			showLog.setOpaque(true);
+			showLog.setToolTipText("Show log");
 			cancelTask = new JLabel("\u2715", SwingConstants.CENTER);
 			cancelTask.setOpaque(true);
 		}
@@ -515,10 +572,15 @@ public class SwingTaskMonitorComponent {
 			cell.setForeground(table.getForeground());
 			labelTop.setForeground(table.getForeground());
 			labelBottom.setForeground(table.getForeground());
+			showLog.setBackground(table.getBackground());
+			showLog.setForeground(table.getForeground());
 			cancelTask.setBackground(table.getBackground());
 			cancelTask.setForeground(table.getForeground());
-			if (column==1) {
-				return cancelTask; // second column : stop icon
+			if (column == LOG_COLUMN) {
+				return showLog;
+			}
+			if (column == STOP_COLUMN) {
+				return cancelTask;
 			}
 			// first column : task information
 			Task task = (Task) tk;

@@ -113,7 +113,8 @@
 		<jdatepicker.version>1.3.2</jdatepicker.version>
 		<object-inspector.version>0.1</object-inspector.version>
 
-		<scijava-common.version>2.100.0</scijava-common.version>
+		<!-- TEMP: for Task#log(); drop once propagated to pom-scijava. -->
+		<scijava-common.version>2.101.0</scijava-common.version>
 	</properties>
 
 	<repositories>
