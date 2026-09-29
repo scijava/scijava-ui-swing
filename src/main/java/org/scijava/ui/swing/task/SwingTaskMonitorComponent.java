@@ -218,7 +218,7 @@ public class SwingTaskMonitorComponent {
 		scrollPane.setOpaque(false);
 		scrollPane.getViewport().setOpaque(false);
 		taskFrame.add(scrollPane, BorderLayout.CENTER);
-		scrollPane.setPreferredSize(new Dimension(200,265));
+		scrollPane.setPreferredSize(new Dimension(600,265));
 		scrollPane.setColumnHeaderView(null);
 		taskFrame.pack();
 
