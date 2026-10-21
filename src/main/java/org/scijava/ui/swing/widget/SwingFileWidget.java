@@ -29,11 +29,12 @@
 
 package org.scijava.ui.swing.widget;
 
+import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.UnsupportedFlavorException;
-import java.awt.dnd.InvalidDnDOperationException;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.InputEvent;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
@@ -45,12 +46,15 @@ import java.util.stream.Collectors;
 
 import javax.swing.Box;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.Timer;
 import javax.swing.TransferHandler;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
+import com.formdev.flatlaf.FlatClientProperties;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.ui.UIService;
@@ -90,9 +94,14 @@ public class SwingFileWidget extends SwingInputWidget<File> implements
 		super.set(model);
 
 		path = new JTextField(16);
+		path.putClientProperty(FlatClientProperties.TEXT_FIELD_SHOW_CLEAR_BUTTON, true);
 		path.setDragEnabled(true);
+		path.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, model
+				.isStyle(FileWidget.DIRECTORY_STYLE)
+				? "Browse, drop, or paste a folder path"
+				: "Browse, drop, or paste a file path");
 		final String style = model.getItem().getWidgetStyle();
-		path.setTransferHandler(new FileTransferHandler(style));
+		path.setTransferHandler(new FileTransferHandler(style, path.getTransferHandler()));
 		setToolTip(path);
 		getComponent().add(path);
 		path.getDocument().addDocumentListener(this);
@@ -337,63 +346,91 @@ public class SwingFileWidget extends SwingInputWidget<File> implements
 
 	// -- Helper classes --
 
+	/** Briefly outlines the path field as invalid (FlatLaf only) */
+	private void flashError() {
+		path.putClientProperty(FlatClientProperties.OUTLINE, FlatClientProperties.OUTLINE_ERROR);
+		final Timer timer = new Timer(1000, e -> path.putClientProperty(FlatClientProperties.OUTLINE, null));
+		timer.setRepeats(false);
+		timer.start();
+	}
+
+	/**
+	 * Handles file drops, delegating everything else (text paste, copy, cut,
+	 * text drag) to the default handler of the text field
+	 */
 	private class FileTransferHandler extends TransferHandler {
 
 		private final String style;
+		private final TransferHandler fallback;
 
-		public FileTransferHandler(final String style) {
+		public FileTransferHandler(final String style, final TransferHandler fallback) {
 			this.style = style;
+			this.fallback = fallback;
+		}
+
+		@Override
+		public int getSourceActions(final JComponent c) {
+			return fallback == null ? NONE : fallback.getSourceActions(c);
+		}
+
+		@Override
+		public void exportToClipboard(final JComponent comp,
+			final Clipboard clip, final int action) throws IllegalStateException
+		{
+			if (fallback != null) fallback.exportToClipboard(comp, clip, action);
+		}
+
+		@Override
+		public void exportAsDrag(final JComponent comp, final InputEvent e,
+			final int action)
+		{
+			if (fallback != null) fallback.exportAsDrag(comp, e, action);
 		}
 
 		@Override
 		public boolean canImport(final TransferHandler.TransferSupport support) {
-			if (!hasFiles(support)) return false;
+			if (!hasFiles(support)) {
+				return fallback != null && fallback.canImport(support);
+			}
 
-			// We wish to test the content of the transfer data and
-			// determine if they are (a) files and (b) files we are
-			// actually interested in processing. So we need to call
-			// getTransferData() so that we can inspect the file names.
-			// Unfortunately, this will not always work.
-			//    Under Windows, the Transferable instance
-			// will have transfer data ONLY while the mouse button is
-			// depressed. However, when the user releases the mouse
-			// button, this method will be called one last time. And when
-			// when this method attempts to getTransferData, Java will throw
-			// an InvalidDnDOperationException. Since we know that the
-			// exception is coming, we simply catch it and ignore it.
-			// See:
-			// https://coderanch.com/t/664525/java/Invalid-Drag-Drop-Exception
+			// Transfer data may not be readable while dragging (Windows, and
+			// macOS). Accept and validate on drop
 			try {
 				final List<File> allFiles = getFiles(support);
-				if (allFiles == null || allFiles.size() != 1)
-					return false;
-
-				final FileFilter filter = SwingFileWidget
-						.createFileFilter(style);
-				final List<File> files = SwingFileWidget.filterFiles(allFiles,
-						filter);
-				return files.size() == 1;
-			} catch (InvalidDnDOperationException exc) {
+				if (allFiles == null || allFiles.isEmpty()) return true;
+				if (allFiles.size() != 1) return false;
+				final FileFilter filter = SwingFileWidget.createFileFilter(style);
+                return SwingFileWidget.filterFiles(allFiles, filter).size() == 1;
+			}
+			catch (final RuntimeException exc) {
 				return true;
 			}
 		}
 
 		@Override
-		public boolean importData(TransferHandler.TransferSupport support) {
-			final List<File> files = getFiles(support);
-			if (files == null) {
-				String text = getText(support);
-				if (text.equals(""))
+		public boolean importData(final TransferHandler.TransferSupport support) {
+			if (hasFiles(support)) {
+				final List<File> files;
+				try {
+					files = getFiles(support);
+				}
+				catch (final RuntimeException exc) {
+					flashError();
 					return false;
-				// TODO check if text matches filter/style
-				((JTextField) support.getComponent()).setText(text);
+				}
+				if (files == null || files.size() != 1) {
+					flashError();
+					return false;
+				}
+				final FileFilter filter = SwingFileWidget.createFileFilter(style);
+				if (SwingFileWidget.filterFiles(files, filter).isEmpty()) {
+					flashError();
+					return false;
+				}
+				path.setText(files.get(0).getAbsolutePath());
 				return true;
 			}
-			if (files.size() != 1) return false;
-
-			final File file = files.get(0);
-			((JTextField) support.getComponent()).setText(file.getAbsolutePath());
-			return true;
+			return fallback != null && fallback.importData(support);
 		}
 	}
 }
