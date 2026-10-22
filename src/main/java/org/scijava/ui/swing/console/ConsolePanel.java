@@ -137,7 +137,7 @@ public class ConsolePanel extends JPanel implements OutputListener
 		final FontMetrics fm = scrollPane.getFontMetrics(textPane.getFont());
 		final int charWidth = fm.charWidth('a');
 		final int lineHeight = fm.getHeight();
-		scrollPane.setPreferredSize(new Dimension(charWidth * 80, lineHeight * 10)); //80 columns, 10 lines
+		scrollPane.setPreferredSize(new Dimension(charWidth * 60, lineHeight * 15)); //60 columns, 15 lines
 		scrollPane.getHorizontalScrollBar().setUnitIncrement(charWidth);
 		scrollPane.getVerticalScrollBar().setUnitIncrement(2 * lineHeight);
 		textPane.setComponentPopupMenu(initMenu());
