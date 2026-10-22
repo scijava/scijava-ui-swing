@@ -29,8 +29,7 @@
 
 package org.scijava.ui.swing.console;
 
-import java.awt.Color;
-import java.awt.Dimension;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.util.Collections;
 import java.util.Objects;
@@ -57,6 +56,9 @@ import javax.swing.text.AttributeSet;
 import javax.swing.text.MutableAttributeSet;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
+
+import com.formdev.flatlaf.FlatClientProperties;
+import com.formdev.flatlaf.FlatLaf;
 
 import net.miginfocom.swing.MigLayout;
 
@@ -92,8 +94,7 @@ public class LoggingPanel extends JPanel implements LogListener
 	private static final AttributeSet STYLE_TRACE = normal(Color.GRAY);
 	private static final AttributeSet STYLE_OTHERS = normal(Color.GRAY);
 
-	private final TextFilterField textFilter =
-		new TextFilterField(" Text Search (Alt-F)");
+	private final TextFilterField textFilter = new TextFilterField("Text Search (Alt-F)");
 	private final LogSourcesPanel sourcesPanel = initSourcesPanel();
 
 	private final ItemTextPane textArea;
@@ -193,26 +194,47 @@ public class LoggingPanel extends JPanel implements LogListener
 	}
 
 	private void initGui() {
+		// extra vertical padding, for a proper search bar look
+		final float fontSize = textFilter.getComponent().getFont().getSize2D() * 1.2f;
+		textFilter.getComponent().setMargin(new Insets((int) (fontSize/2), 0, (int) (fontSize/2), 0));
 		textFilter.setChangeListener(this::updateFilter);
 
 		JPopupMenu menu = initMenu();
 
 		JButton menuButton = new JButton("\u22EE");
-		menuButton.addActionListener(a ->
-			menu.show(menuButton, 0, menuButton.getHeight()));
+		menuButton.setFont(menuButton.getFont().deriveFont(fontSize).deriveFont(Font.BOLD));
+		menuButton.addActionListener(a -> menu.show(menuButton, 0, menuButton.getHeight()));
 
-		textFilterPanel.setLayout(new MigLayout("insets 0", "[][grow]", "[]"));
-		textFilterPanel.add(menuButton);
+		if (UIManager.getLookAndFeel() instanceof FlatLaf) {
+			// embed the menu button at the left edge of the search field
+			menuButton.setFocusable(false);
+			menuButton.putClientProperty(FlatClientProperties.BUTTON_TYPE,
+				FlatClientProperties.BUTTON_TYPE_TOOLBAR_BUTTON);
+			textFilter.getComponent().putClientProperty(
+				FlatClientProperties.TEXT_FIELD_LEADING_COMPONENT, menuButton);
+			textFilterPanel.setLayout(new MigLayout("insets 0", "[grow]", "[]"));
+		}
+		else {
+			textFilterPanel.setLayout(new MigLayout("insets 0", "[][grow]", "[]"));
+			textFilterPanel.add(menuButton);
+		}
 		textFilterPanel.add(textFilter.getComponent(), "grow");
 
 		sourcesPanel.setChangeListener(this::updateFilter);
 		sourcesPanel.setMinimumSize(new Dimension());
 
 		textArea.setPopupMenu(menu);
-		textArea.getJComponent().setPreferredSize(new Dimension(200, 100));
+		// 60 columns by 15 lines, consistent with ConsolePanel
+		final JComponent logComponent = textArea.getJComponent();
+		final FontMetrics logMetrics = logComponent.getFontMetrics(logComponent.getFont());
+		logComponent.setPreferredSize(new Dimension(logMetrics.charWidth('a') * 60, logMetrics.getHeight() * 15));
+		// keeps the log readable when the divider is dragged to the right
+		textArea.getJComponent().setMinimumSize(new Dimension(150, 50));
 
 		splitPane.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1));
-		splitPane.setOneTouchExpandable(true);
+		// NB: no one-touch arrows, the sources panel must never take over the whole
+		// width. It is toggled from the menu, or by dragging the divider
+		splitPane.setOneTouchExpandable(false);
 		setSourcesPanelVisible(false);
 		splitPane.add(sourcesPanel);
 		splitPane.add(textArea.getJComponent());
@@ -227,7 +249,7 @@ public class LoggingPanel extends JPanel implements LogListener
 	private LogSourcesPanel initSourcesPanel() {
 		JButton reloadButton = new JButton("Reload");
 		reloadButton.addActionListener(actionEvent -> reloadSources());
-		return new LogSourcesPanel(reloadButton);
+		return new LogSourcesPanel(reloadButton, this::toggleSourcesPanel);
 	}
 
 	private void reloadSources() {
@@ -247,16 +269,13 @@ public class LoggingPanel extends JPanel implements LogListener
 
 	private JPopupMenu initMenu() {
 		JPopupMenu menu = new JPopupMenu();
-		menu.add(newMenuItem("Copy", "control C",
-			this::copySelectionToClipboard));
-		registerKeyStroke("control C", "copyToClipBoard",
-			this::copySelectionToClipboard);
-		menu.add(newMenuItem("Clear", "alt C",
-			this::clear));
-		registerKeyStroke("alt C", "clearLoggingPanel",
-			this::clear);
-		menu.add(newMenuItem("Log Sources",
-			this::toggleSourcesPanel));
+		menu.add(newMenuItem("Copy", "control C", this::copySelectionToClipboard));
+		registerKeyStroke("control C", "copyToClipBoard", this::copySelectionToClipboard);
+		menu.add(newMenuItem("Clear", "alt C", this::clear));
+		registerKeyStroke("alt C", "clearLoggingPanel", this::clear);
+		menu.addSeparator();
+		menu.add(newMenuItem("Log Sources", this::toggleSourcesPanel));
+		menu.addSeparator();
 		menu.add(initSettingsMenu());
 		return menu;
 	}

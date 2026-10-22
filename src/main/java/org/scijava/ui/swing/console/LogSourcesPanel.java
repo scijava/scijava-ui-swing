@@ -30,6 +30,7 @@
 package org.scijava.ui.swing.console;
 
 import java.awt.BorderLayout;
+import java.awt.Font;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.util.Arrays;
@@ -47,20 +48,15 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import javax.swing.JButton;
-import javax.swing.JComponent;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JMenuItem;
-import javax.swing.JPanel;
-import javax.swing.JPopupMenu;
-import javax.swing.JScrollPane;
-import javax.swing.JTree;
+import javax.swing.*;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
+
+import com.formdev.flatlaf.FlatClientProperties;
+import com.formdev.flatlaf.FlatLaf;
 
 import net.miginfocom.swing.MigLayout;
 
@@ -89,20 +85,31 @@ class LogSourcesPanel extends JPanel {
 
 	private Predicate<LogMessage> filter = message -> true;
 	private Runnable changeListener = null;
-	private List<LogSource> selected;
+	private List<LogSource> selected = Collections.emptyList();
 
 	// -- constructor --
 
-	LogSourcesPanel(JButton reloadButton) {
+	LogSourcesPanel(JButton reloadButton, Runnable toggleAction) {
 		initMenu();
 		initTreeView();
-		JButton visibilityButton = initVisibilityButton();
-		setLayout(new MigLayout("inset 0", "[grow]", "[][grow][]"));
-		add(new JLabel("Log Sources:"), "grow, wrap");
+		final JButton visibilityButton = initVisibilityButton();
+		final JButton collapseButton = new JButton("\u2715");
+		collapseButton.addActionListener(a -> toggleAction.run());
+
+		visibilityButton.putClientProperty(FlatClientProperties.STYLE_CLASS, "small");
+		reloadButton.putClientProperty(FlatClientProperties.STYLE_CLASS, "small");
+		collapseButton.putClientProperty(FlatClientProperties.STYLE_CLASS, "small");
+
+		final JToolBar toolBar = new JToolBar();
+		toolBar.setFloatable(false);
+		toolBar.add(collapseButton);
+		toolBar.add(Box.createHorizontalGlue());
+		toolBar.add(reloadButton);
+		toolBar.add(visibilityButton);
+		// tree takes the free height, the toolbar keeps its preferred height
+		setLayout(new MigLayout("inset 0", "[grow]", "[grow][]"));
 		add(new JScrollPane(tree), "grow, wrap");
-		add(new JLabel(""), "split 3, grow");
-		add(reloadButton);
-		add(visibilityButton);
+		add(toolBar, "growx");
 		actionWhenFocusLost(() -> tree.clearSelection(), Arrays.asList(tree, visibilityButton));
 	}
 
@@ -129,11 +136,14 @@ class LogSourcesPanel extends JPanel {
 		treeModel = new DefaultTreeModel(rootNode);
 		tree = new JTree(treeModel);
 		tree.setRootVisible(false);
-		DefaultTreeCellRenderer cellRenderer = new DefaultTreeCellRenderer();
-		cellRenderer.setIcon(null);
-		cellRenderer.setLeafIcon(null);
-		cellRenderer.setOpenIcon(null);
-		tree.setCellRenderer(cellRenderer);
+		// NB: FlatLaf trees have no default icons, so keep its own renderer
+		if (!(UIManager.getLookAndFeel() instanceof FlatLaf)) {
+			DefaultTreeCellRenderer cellRenderer = new DefaultTreeCellRenderer();
+			cellRenderer.setIcon(null);
+			cellRenderer.setLeafIcon(null);
+			cellRenderer.setOpenIcon(null);
+			tree.setCellRenderer(cellRenderer);
+		}
 		tree.setComponentPopupMenu(menu);
 		tree.setEditable(false);
 		tree.setShowsRootHandles(true);
@@ -146,7 +156,8 @@ class LogSourcesPanel extends JPanel {
 	}
 
 	private JButton initVisibilityButton() {
-		JButton button = new JButton("Visibility");
+		JButton button = new JButton("Visibility \u25BE");
+		button.setToolTipText("Set which log levels are shown for the selected sources");
 		button.addActionListener(a -> menu.show(button, 0, button.getHeight()));
 		return button;
 	}
@@ -340,7 +351,7 @@ class LogSourcesPanel extends JPanel {
 
 	public static void main(String... args) {
 		JFrame frame = new JFrame();
-		LogSourcesPanel logLevelPanel = new LogSourcesPanel(new JButton("dummy"));
+		LogSourcesPanel logLevelPanel = new LogSourcesPanel(new JButton("dummy"), null);
 		LogSource root = LogSource.newRoot();
 		Set<LogSource> loggers = new HashSet<>(Arrays.asList(
 				root.subSource("Hello:World"),
