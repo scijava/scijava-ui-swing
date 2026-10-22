@@ -103,6 +103,7 @@ public class SwingTextWidget extends SwingInputWidget<String> implements
 		}
 		else if (model.isStyle(TextWidget.PASSWORD_STYLE)) {
 			textComponent = new JPasswordField("", columns);
+			textComponent.putClientProperty(FlatClientProperties.STYLE, "showRevealButton: true; showCapsLock: true");
 		}
 		else {
 			textComponent = new JTextField("", columns);
