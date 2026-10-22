@@ -29,15 +29,18 @@
 
 package org.scijava.ui.swing.widget;
 
+import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Date;
 
 import javax.swing.JPanel;
+import javax.swing.UIManager;
 
-import net.sourceforge.jdatepicker.impl.JDatePanelImpl;
-import net.sourceforge.jdatepicker.impl.JDatePickerImpl;
-import net.sourceforge.jdatepicker.impl.UtilDateModel;
+import org.jdatepicker.ComponentColorDefaults;
+import org.jdatepicker.ComponentColorDefaults.Key;
+import org.jdatepicker.JDatePicker;
+import org.jdatepicker.UtilDateModel;
 
 import org.scijava.log.LogService;
 import org.scijava.plugin.Parameter;
@@ -75,13 +78,47 @@ public class SwingDateWidget extends SwingInputWidget<Date> implements
 		super.set(model);
 
 		dateModel = new UtilDateModel();
-		final JDatePickerImpl datePicker =
-			new JDatePickerImpl(new JDatePanelImpl(dateModel), null);
+		applyThemeColors();
+		// NB: the picker must be built on our model, or user picks never reach it
+		final JDatePicker datePicker = new JDatePicker(dateModel);
 		setToolTip(datePicker);
 		getComponent().add(datePicker);
 		datePicker.addActionListener(this);
 
 		refreshWidget();
+	}
+
+	// -- Helper methods --
+
+	/**
+	 * Maps the picker colors to the current look and feel. Note that
+	 * {@link ComponentColorDefaults} is a global singleton read when a picker
+	 * is created, so existing pickers keep their colors on a theme change
+	 */
+	private static void applyThemeColors() {
+		setColor(Key.BG_MONTH_SELECTOR, "TableHeader.background");
+		setColor(Key.FG_MONTH_SELECTOR, "TableHeader.foreground");
+		setColor(Key.BG_GRID_HEADER, "TableHeader.background");
+		setColor(Key.FG_GRID_HEADER, "TableHeader.foreground");
+		setColor(Key.BG_GRID, "Table.background");
+		setColor(Key.BG_GRID_NOT_SELECTABLE, "Panel.background");
+		setColor(Key.FG_GRID_THIS_MONTH, "Table.foreground");
+		setColor(Key.FG_GRID_OTHER_MONTH, "Label.disabledForeground");
+		setColor(Key.FG_GRID_TODAY, "Component.accentColor");
+		setColor(Key.FG_GRID_SELECTED, "Table.selectionForeground");
+		setColor(Key.BG_GRID_SELECTED, "Table.selectionBackground");
+		setColor(Key.FG_GRID_TODAY_SELECTED, "Table.selectionForeground");
+		setColor(Key.BG_GRID_TODAY_SELECTED, "Table.selectionBackground");
+		setColor(Key.BG_TODAY_SELECTOR, "Panel.background");
+		setColor(Key.FG_TODAY_SELECTOR_ENABLED, "Label.foreground");
+		setColor(Key.FG_TODAY_SELECTOR_DISABLED, "Label.disabledForeground");
+		setColor(Key.POPUP_BORDER, "Component.borderColor");
+	}
+
+	/** Sets a picker color from a UIManager key, if the key is defined */
+	private static void setColor(final Key key, final String uiKey) {
+		final Color color = UIManager.getColor(uiKey);
+		if (color != null) ComponentColorDefaults.getInstance().setColor(key, color);
 	}
 
 	// -- Typed methods --
