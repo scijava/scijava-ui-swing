@@ -55,9 +55,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
 import com.formdev.flatlaf.FlatClientProperties;
-import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
-import org.scijava.ui.UIService;
 import org.scijava.widget.FileListWidget;
 import org.scijava.widget.FileWidget;
 import org.scijava.widget.InputWidget;
@@ -72,9 +70,6 @@ import org.scijava.widget.WidgetModel;
 public class SwingFileWidget extends SwingInputWidget<File> implements
 	FileWidget<JPanel>, ActionListener, DocumentListener
 {
-
-	@Parameter
-	private UIService uiService;
 
 	private JTextField path;
 	private JButton browse;
@@ -108,7 +103,7 @@ public class SwingFileWidget extends SwingInputWidget<File> implements
 
 		getComponent().add(Box.createHorizontalStrut(3));
 
-		browse = new JButton("Browse");
+		browse = new JButton("Browse...");
 		setToolTip(browse);
 		getComponent().add(browse);
 		browse.addActionListener(this);
@@ -144,7 +139,7 @@ public class SwingFileWidget extends SwingInputWidget<File> implements
 		else {
 			style = FileWidget.OPEN_STYLE;
 		}
-		file = uiService.chooseFile(file, style);
+		file = chooseFile(file, style);
 		if (file == null) return;
 
 		path.setText(file.getAbsolutePath());

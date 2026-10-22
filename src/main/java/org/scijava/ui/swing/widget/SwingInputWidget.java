@@ -30,6 +30,10 @@
 package org.scijava.ui.swing.widget;
 
 import java.awt.Color;
+import java.awt.Window;
+import java.io.File;
+import java.io.FileFilter;
+import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -43,6 +47,7 @@ import net.miginfocom.swing.MigLayout;
 
 import org.scijava.ui.AbstractUIInputWidget;
 import org.scijava.ui.UserInterface;
+import org.scijava.ui.swing.AbstractSwingUI;
 import org.scijava.ui.swing.SwingUI;
 import org.scijava.widget.WidgetModel;
 
@@ -97,6 +102,41 @@ public abstract class SwingInputWidget<T> extends
 	}
 
 	// -- Helper methods --
+
+	/**
+	 * Asks the user for a file, with the dialog shown relative to this widget
+	 * rather than the application frame.
+	 *
+	 * @see org.scijava.ui.UserInterface#chooseFile(File, String)
+	 */
+	protected File chooseFile(final File file, final String style) {
+		final Window parent = SwingUtilities.getWindowAncestor(getComponent());
+		final UserInterface ui = ui();
+		if (ui instanceof AbstractSwingUI) {
+			return ((AbstractSwingUI) ui).chooseFile(parent, file, style);
+		}
+		return ui.chooseFile(file, style);
+	}
+
+	/**
+	 * Asks the user for files, with the dialog shown relative to this widget
+	 * rather than the application frame.
+	 *
+	 * @see org.scijava.ui.UserInterface#chooseFiles(File, List, FileFilter,
+	 *      String)
+	 */
+	protected List<File> chooseFiles(final File start, final List<File> files,
+		final FileFilter filter, final String style)
+	{
+		final Window parent = SwingUtilities.getWindowAncestor(getComponent());
+		final UserInterface ui = ui();
+		if (ui instanceof AbstractSwingUI) {
+			final File[] result = ((AbstractSwingUI) ui).chooseFiles(parent, start,
+				files.toArray(new File[0]), filter, style);
+			return result == null ? null : Arrays.asList(result);
+		}
+		return ui.chooseFiles(start, files, filter, style);
+	}
 
 	/** Assigns the model's description as the given component's tool tip. */
 	protected void setToolTip(final JComponent c) {
