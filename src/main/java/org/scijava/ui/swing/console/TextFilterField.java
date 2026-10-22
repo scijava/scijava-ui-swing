@@ -29,21 +29,20 @@
 
 package org.scijava.ui.swing.console;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Font;
+import java.util.Arrays;
+import java.util.Locale;
 import java.util.function.Predicate;
 
-import javax.swing.JLabel;
 import javax.swing.JTextField;
-import javax.swing.SwingConstants;
-import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
+import com.formdev.flatlaf.FlatClientProperties;
+
 /**
  * {@link TextFilterField} provides a {@link JTextField} and derives a text
- * filter from the content.
+ * filter from the content. The filter accepts text containing all the
+ * (space separated) words typed by the user, ignoring case.
  *
  * @author Matthias Arzt
  */
@@ -51,16 +50,15 @@ class TextFilterField {
 
 	private final JTextField textField = new JTextField();
 
-	private JLabel prompt = new JLabel();
-
-	private Predicate<String> filter = null;
+	private volatile Predicate<String> filter = null;
 
 	private Runnable changeListener = null;
 
 	// -- constructor --
 
 	TextFilterField(String textForPrompt) {
-		initPrompt(textForPrompt);
+		textField.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, textForPrompt.trim());
+		textField.putClientProperty(FlatClientProperties.TEXT_FIELD_SHOW_CLEAR_BUTTON, true);
 		textField.getDocument().addDocumentListener(new DocumentListener() {
 
 			@Override
@@ -98,41 +96,24 @@ class TextFilterField {
 	// -- Helper methods --
 
 	private Predicate<String> calculateFilter() {
-		String text = textField.getText();
-		final String[] words = text.split(" ");
+		final String[] words = Arrays.stream(textField.getText().toLowerCase(
+			Locale.ROOT).split("\\s+")).filter(w -> !w.isEmpty()).toArray(
+				String[]::new);
+		if (words.length == 0) return s -> true;
 		return s -> {
-			for (String word : words)
-				if (!s.contains(word)) return false;
+			final String lower = s.toLowerCase(Locale.ROOT);
+			for (final String word : words)
+				if (!lower.contains(word)) return false;
 			return true;
 		};
 	}
 
 	private void onUserInputChanged() {
 		filter = null;
-		updatePromptVisibility();
 		notifyChangeListener();
 	}
 
 	private void notifyChangeListener() {
 		if (changeListener != null) changeListener.run();
-	}
-
-	private void initPrompt(String text) {
-		prompt.setText(text);
-		prompt.setFont(textField.getFont().deriveFont(Font.ITALIC));
-		prompt.setForeground(changeAlpha(textField.getForeground(), 128));
-		prompt.setBorder(new EmptyBorder(textField.getInsets()));
-		prompt.setHorizontalAlignment(SwingConstants.LEADING);
-		textField.setLayout(new BorderLayout());
-		textField.add(prompt);
-		updatePromptVisibility();
-	}
-
-	private static Color changeAlpha(Color color, int alpha) {
-		return new Color(color.getRed(), color.getGreen(), color.getBlue(), alpha);
-	}
-
-	private void updatePromptVisibility() {
-		prompt.setVisible(textField.getDocument().getLength() == 0);
 	}
 }
