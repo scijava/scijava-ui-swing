@@ -86,7 +86,7 @@ public class SwingColorWidget extends SwingInputWidget<ColorRGB> implements
 
 	@Override
 	public void actionPerformed(final ActionEvent e) {
-		final Color choice = showColorDialog(choose, "Select a color", color);
+		final Color choice = showColorDialog(choose, "Select a Color", color);
 		if (choice == null) return;
 		color = choice;
 		updateModel();
@@ -141,7 +141,7 @@ public class SwingColorWidget extends SwingInputWidget<ColorRGB> implements
 	public static Color showColorDialog(final Component component,
 		final String title, final Color initialColor) throws HeadlessException
 	{
-		final JColorChooser pane = createColorChooser(initialColor);
+		final JColorChooser pane = getSharedColorChooser(initialColor);
 
 		class ColorTracker implements ActionListener {
 
@@ -167,11 +167,33 @@ public class SwingColorWidget extends SwingInputWidget<ColorRGB> implements
 			JColorChooser.createDialog(component, title, true, pane, ok, null);
 
 		dialog.setVisible(true);
+		dialog.dispose();
 
 		return ok.getColor();
 	}
 
 	// -- Helper methods --
+
+	private static JColorChooser sharedChooser;
+	private static String sharedChooserLaf;
+
+	/**
+	 * Returns a chooser shared by all color widgets, so that state such as the
+	 * recent colors of the swatches panel survives between dialogs. It is
+	 * rebuilt if the look and feel changed, since a chooser that is not shown
+	 * does not get updated and would keep the old UI.
+	 */
+	private static synchronized JColorChooser getSharedColorChooser(
+		final Color initialColor)
+	{
+		final String laf = UIManager.getLookAndFeel().getClass().getName();
+		if (sharedChooser == null || !laf.equals(sharedChooserLaf)) {
+			sharedChooser = createColorChooser(initialColor);
+			sharedChooserLaf = laf;
+		}
+		sharedChooser.setColor(initialColor != null ? initialColor : Color.white);
+		return sharedChooser;
+	}
 
 	/**
 	 * Creates a new {@link JColorChooser} with panels in a desirable order.
