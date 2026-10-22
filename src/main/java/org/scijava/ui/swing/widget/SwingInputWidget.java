@@ -69,8 +69,11 @@ public abstract class SwingInputWidget<T> extends
 	public void set(final WidgetModel model) {
 		super.set(model);
 		uiComponent = new JPanel();
+		// Zero column gaps: empty trailing columns must not take up space, so that
+		// single-component widgets align with the right edge. Widgets needing
+		// spacing between components add it explicitly
 		final MigLayout layout =
-			new MigLayout("fillx,ins 3 0 3 0", "[fill,grow|pref]");
+			new MigLayout("fillx,ins 3 0 3 0", "[fill,grow]0[pref]0[pref]");
 		uiComponent.setLayout(layout);
 	}
 
