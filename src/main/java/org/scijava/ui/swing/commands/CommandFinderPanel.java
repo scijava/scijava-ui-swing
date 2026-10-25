@@ -60,6 +60,7 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 
+import com.formdev.flatlaf.FlatClientProperties;
 import net.miginfocom.swing.MigLayout;
 
 import org.scijava.MenuEntry;
@@ -97,6 +98,7 @@ public class CommandFinderPanel extends JPanel implements ActionListener,
 		setPreferredSize(new Dimension(800, 600));
 
 		searchField = new JTextField(12);
+		searchField.putClientProperty(FlatClientProperties.TEXT_FIELD_SHOW_CLEAR_BUTTON, true);
 		commandsList = new JTable(20, CommandTableModel.COLUMN_COUNT);
 		commandsList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		commandsList.setRowSelectionAllowed(true);

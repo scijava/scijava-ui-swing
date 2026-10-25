@@ -29,7 +29,9 @@
 
 package org.scijava.ui.swing.widget;
 
+import java.awt.Cursor;
 import java.awt.Dimension;
+import java.awt.datatransfer.Clipboard;
 import java.awt.dnd.DnDConstants;
 import java.awt.dnd.DropTarget;
 import java.awt.dnd.DropTargetAdapter;
@@ -38,33 +40,43 @@ import java.awt.dnd.DropTargetDropEvent;
 import java.awt.dnd.DropTargetEvent;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.TooManyListenersException;
+import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+import javax.swing.AbstractAction;
 import javax.swing.Box;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.KeyStroke;
+import javax.swing.SwingWorker;
 import javax.swing.TransferHandler;
 
 import net.miginfocom.swing.MigLayout;
 
 import org.scijava.log.LogService;
-import org.scijava.module.ModuleService;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
-import org.scijava.thread.ThreadService;
 import org.scijava.widget.FileListWidget;
 import org.scijava.widget.FileWidget;
 import org.scijava.widget.InputWidget;
@@ -82,11 +94,7 @@ public class SwingFileListWidget extends SwingInputWidget<File[]> implements
 	@Parameter
 	private LogService logService;
 
-	@Parameter
-	private ModuleService moduleService;
-
-	@Parameter
-	private ThreadService threadService;
+	private boolean loadingFolder;
 
 	private JList<File> paths;
 	private JButton addFilesButton;
@@ -99,33 +107,33 @@ public class SwingFileListWidget extends SwingInputWidget<File[]> implements
 		DefaultListModel<File> listModel = //
 			(DefaultListModel<File>) paths.getModel();
 		List<File> fileList = Collections.list(listModel.elements());
-		return fileList.toArray(new File[fileList.size()]);
+		return fileList.toArray(new File[0]);
 	}
 
 	@Override
 	public void set(final WidgetModel model) {
 		super.set(model);
 		paths = new JList<>(new DefaultListModel<>());
-		//paths.setMinimumSize(new Dimension(150, 50));
-		//paths.setMaximumSize(new Dimension(150, 50));
 		paths.setDragEnabled(true);
 		final String style = model.getItem().getWidgetStyle();
-		paths.setTransferHandler(new FileListTransferHandler(style));
+		paths.setTransferHandler(new FileListTransferHandler(style, paths
+			.getTransferHandler()));
 		JScrollPane scrollPane = new JScrollPane(paths);
 		scrollPane.setPreferredSize(new Dimension(350, 100));
 		paths.addMouseListener(this);
 		// scrollPane.addMouseListener(l);
 
 		setToolTip(scrollPane);
-		getComponent().add(scrollPane);
+		getComponent().add(scrollPane, "grow");
 
 		getComponent().add(Box.createHorizontalStrut(3));
 
-		JPanel buttonPanel = new JPanel(new MigLayout());
+		// no insets and a 3 px vertical gap, to match the other file widgets
+		JPanel buttonPanel = new JPanel(new MigLayout("ins 0, gapy 3"));
 
 		// Set button label dependent on widget style
-		String filesLabel = model.isStyle(DIRECTORIES_ONLY) ? "Add folders..."
-				: "Add files...";
+		String filesLabel = model.isStyle(DIRECTORIES_ONLY) ? "Add Folders..."
+				: "Add Files...";
 		addFilesButton = new JButton(filesLabel);
 		setToolTip(addFilesButton);
 		buttonPanel.add(addFilesButton, "wrap, grow");
@@ -133,8 +141,10 @@ public class SwingFileListWidget extends SwingInputWidget<File[]> implements
 
 		// Only show folder button if style allows files
 		if (!model.isStyle(DIRECTORIES_ONLY)) {
-			addFolderButton = new JButton("Add folder content...");
-			setToolTip(addFolderButton);
+			addFolderButton = new JButton("Add Folder...");
+			// set directly: setToolTip() would replace it with the description
+			addFolderButton.setToolTipText("<html>Adds all matching files from the " +
+				"chosen folder<br>and its subfolders (recursive)</html>");
 			// add TransferHandler to accept dropped folders
 			addFolderButton.setTransferHandler(new FolderTransferHandler());
 
@@ -149,12 +159,33 @@ public class SwingFileListWidget extends SwingInputWidget<File[]> implements
 			addFolderButton.addActionListener(this);
 		}
 
-		removeFilesButton = new JButton("Remove selected");
-		setToolTip(removeFilesButton);
+		removeFilesButton = new JButton("Remove");
+		// set directly: setToolTip() would replace it with the description
+		removeFilesButton.setToolTipText("<html>Removes the selected entries " +
+			"from the list<br>(Delete or double-clicking an entry also removes it)</html>");
+		removeFilesButton.setEnabled(false);
+		paths.addListSelectionListener(e -> {
+			if (!e.getValueIsAdjusting())
+				removeFilesButton.setEnabled(!paths.isSelectionEmpty());
+		});
+		// Delete (or Backspace, e.g. the macOS delete key) removes the selection
+		final String removeKey = "removeSelected";
+		for (final int key : new int[] { KeyEvent.VK_DELETE,
+			KeyEvent.VK_BACK_SPACE })
+		{
+			paths.getInputMap().put(KeyStroke.getKeyStroke(key, 0), removeKey);
+		}
+		paths.getActionMap().put(removeKey, new AbstractAction() {
+
+			@Override
+			public void actionPerformed(final ActionEvent e) {
+				removeSelected();
+			}
+		});
 		buttonPanel.add(removeFilesButton, "wrap, grow");
 		removeFilesButton.addActionListener(this);
 
-		clearButton = new JButton("Clear list");
+		clearButton = new JButton("Clear");
 		setToolTip(clearButton);
 		buttonPanel.add(clearButton, "grow");
 		clearButton.addActionListener(this);
@@ -196,27 +227,27 @@ public class SwingFileListWidget extends SwingInputWidget<File[]> implements
 				style = FileListWidget.FILES_ONLY; // default
 			}
 
-			fileList = ui().chooseFiles(null, fileList, filter, style);
+			fileList = chooseFiles(null, fileList, filter, style);
 			if (fileList == null)
 				return;
-			fileList.forEach(file -> listModel.addElement(file));
+			addUnique(fileList);
+			updateModel();
+			return;
 		} else if (e.getSource() == addFolderButton) {
-			File folder = ui().chooseFile(null, FileWidget.DIRECTORY_STYLE);
+			File folder = chooseFile(null, FileWidget.DIRECTORY_STYLE);
 			if (folder == null)
 				return;
-			List<File> fileList = getFilesFromFolder(folder);
-			fileList.forEach(file -> listModel.addElement(file));
+			addFolderContent(folder);
+			return;
 		} else if (e.getSource() == removeFilesButton) {
-			// Remove selected files
-			List<File> selected = paths.getSelectedValuesList();
-			for (File f : selected) {
-				listModel.removeElement(f);
-			}
+			removeSelected();
+			return;
 		} else if (e.getSource() == clearButton) {
 			// Clear the file selection
 			listModel.removeAllElements();
 		}
 		paths.setModel(listModel);
+		updateButtons();
 		updateModel();
 	}
 
@@ -232,21 +263,14 @@ public class SwingFileListWidget extends SwingInputWidget<File[]> implements
 			}
 		}
 		paths.setModel(listModel);
+		updateButtons();
 	}
 
 	@Override
 	public void mouseClicked(MouseEvent e) {
 		// handle double click
 		if (e.getClickCount() == 2) {
-			DefaultListModel<File> listModel = //
-				(DefaultListModel<File>) paths.getModel();
-			// Remove selected files
-			List<File> selected = paths.getSelectedValuesList();
-			for (File f : selected) {
-				listModel.removeElement(f);
-			}
-			paths.setModel(listModel);
-			updateModel();
+			removeSelected();
 		}
 	}
 
@@ -272,23 +296,89 @@ public class SwingFileListWidget extends SwingInputWidget<File[]> implements
 
 	// -- Helper methods --
 
-	private List<File> getFilesFromFolder(File inputFolder) {
-		// get files in folder and add to listModel
-		List<File> fileList = new ArrayList<>();
-		final WidgetModel widgetModel = get();
-		final String widgetStyle = widgetModel.getItem().getWidgetStyle();
-		FileFilter filter = SwingFileWidget.createFileFilter(widgetStyle);
-		try {
-			fileList = Arrays
-					.asList((Files.walk(inputFolder.toPath())
-							.filter(path -> filter.accept(path.toFile())))
-							.map(path -> path.toFile())
-							.toArray(File[]::new));
-		} catch (IOException exc) {
-			logService
-					.error("Error when trying to retrieve file list", exc);
+	/** Removes the selected entries from the list */
+	private void removeSelected() {
+		final DefaultListModel<File> listModel = //
+			(DefaultListModel<File>) paths.getModel();
+		for (final File f : paths.getSelectedValuesList()) {
+			listModel.removeElement(f);
 		}
-		return fileList;
+		paths.setModel(listModel);
+		updateButtons();
+		updateModel();
+	}
+
+	/** Adds the given files to the list, skipping those already listed */
+	private void addUnique(final List<File> files) {
+		final DefaultListModel<File> current = //
+			(DefaultListModel<File>) paths.getModel();
+		// Replace the model at once, instead of firing an event per file
+		final DefaultListModel<File> merged = new DefaultListModel<>();
+		final Set<File> seen = new HashSet<>();
+		Collections.list(current.elements()).forEach(f -> {
+			merged.addElement(f);
+			seen.add(f);
+		});
+		files.stream().filter(seen::add).forEach(merged::addElement);
+		paths.setModel(merged);
+		updateButtons();
+	}
+
+	/** Enables the buttons that only make sense for a non-empty list */
+	private void updateButtons() {
+		clearButton.setEnabled(paths.getModel().getSize() > 0);
+	}
+
+	/**
+	 * Adds the files of a folder (and its subfolders) that match the widget
+	 * style. The folder is scanned in the background, so the UI stays responsive
+	 */
+	private void addFolderContent(final File folder) {
+		if (loadingFolder) return;
+		loadingFolder = true;
+		final FileFilter filter = SwingFileWidget.createFileFilter(get().getItem()
+			.getWidgetStyle());
+		getComponent().setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+		if (addFolderButton != null) addFolderButton.setEnabled(false);
+		new SwingWorker<List<File>, Void>() {
+
+			@Override
+			protected List<File> doInBackground() {
+				return getFilesFromFolder(folder, filter);
+			}
+
+			@Override
+			protected void done() {
+				try {
+					addUnique(get());
+					updateModel();
+				}
+				catch (final InterruptedException | ExecutionException exc) {
+					logService.error("Error when trying to retrieve file list", exc);
+				}
+				finally {
+					loadingFolder = false;
+					getComponent().setCursor(Cursor.getDefaultCursor());
+					if (addFolderButton != null) addFolderButton.setEnabled(true);
+				}
+			}
+		}.execute();
+	}
+
+	/** Walks the folder tree. Must not be called on the EDT */
+	private List<File> getFilesFromFolder(final File inputFolder,
+		final FileFilter filter)
+	{
+		try (final Stream<Path> walk = Files.walk(
+			inputFolder.toPath()))
+		{
+			return walk.map(Path::toFile).filter(filter::accept)
+				.collect(Collectors.toList());
+		}
+		catch (IOException | UncheckedIOException exc) {
+			logService.error("Error when trying to retrieve file list", exc);
+			return new ArrayList<>();
+		}
 	}
 
 	// -- Helper classes --
@@ -296,9 +386,33 @@ public class SwingFileListWidget extends SwingInputWidget<File[]> implements
 	private class FileListTransferHandler extends TransferHandler {
 
 		private final String style;
+		private final TransferHandler fallback;
 
-		public FileListTransferHandler(final String style) {
+		public FileListTransferHandler(final String style,
+			final TransferHandler fallback)
+		{
 			this.style = style;
+			this.fallback = fallback;
+		}
+
+		// Keep copy and drag out of the list working (default handler)
+		@Override
+		public int getSourceActions(final JComponent c) {
+			return fallback == null ? NONE : fallback.getSourceActions(c);
+		}
+
+		@Override
+		public void exportToClipboard(final JComponent comp,
+			final Clipboard clip, final int action) throws IllegalStateException
+		{
+			if (fallback != null) fallback.exportToClipboard(comp, clip, action);
+		}
+
+		@Override
+		public void exportAsDrag(final JComponent comp, final InputEvent e,
+			final int action)
+		{
+			if (fallback != null) fallback.exportAsDrag(comp, e, action);
 		}
 
 		@Override
@@ -306,7 +420,6 @@ public class SwingFileListWidget extends SwingInputWidget<File[]> implements
 			return SwingFileWidget.hasFiles(support);
 		}
 
-		@SuppressWarnings("unchecked")
 		@Override
 		public boolean importData(final TransferHandler.TransferSupport support) {
 			final List<File> allFiles = SwingFileWidget.getFiles(support);
@@ -317,11 +430,7 @@ public class SwingFileListWidget extends SwingInputWidget<File[]> implements
 				logService.warn("Some files were excluded " +
 					"for not matching the input requirements (" + style + ")");
 			}
-			final JList<File> jlist = (JList<File>) support.getComponent();
-			final DefaultListModel<File> model = (DefaultListModel<File>) //
-				jlist.getModel();
-			files.forEach(f -> model.addElement(f));
-			jlist.setModel(model);
+			addUnique(files);
 			updateModel();
 			return true;
 		}
@@ -345,20 +454,13 @@ public class SwingFileListWidget extends SwingInputWidget<File[]> implements
 			if (!folder.isDirectory())
 				return false;
 
-			// get all files matching filter from folder and subfolders
-			List<File> fileList = getFilesFromFolder(folder);
-
-			// add files to model
-			DefaultListModel<File> model = //
-					(DefaultListModel<File>) paths.getModel();
-			fileList.forEach(file -> model.addElement(file));
-			paths.setModel(model);
-			updateModel();
+			// add all files matching filter from folder and subfolders
+			addFolderContent(folder);
 			return true;
 		}
 	}
 	
-	private class ButtonDropTargetListener extends DropTargetAdapter {
+	private static class ButtonDropTargetListener extends DropTargetAdapter {
 
 		@Override
 		public void drop(DropTargetDropEvent dtde) {

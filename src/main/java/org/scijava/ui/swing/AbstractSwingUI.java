@@ -137,6 +137,20 @@ public abstract class AbstractSwingUI extends AbstractUserInterface implements
 
 	@Override
 	public File chooseFile(final File file, final String style) {
+		return chooseFile((Component)null, file, style);
+	}
+
+	/**
+	 * Like {@link #chooseFile(File, String)}, but the dialog is shown relative
+	 * to the given component.
+	 *
+	 * @param owner The component to center the dialog on. If {@code null}, the
+	 *          application frame is used.
+	 */
+	public File chooseFile(final Component owner, final File file,
+		final String style)
+	{
+		final Component parent = owner != null ? owner : appFrame;
 		final File[] result = new File[1];
 		try {
 			// NB: We show the JFileChooser on the EDT because otherwise there could
@@ -148,10 +162,10 @@ public abstract class AbstractSwingUI extends AbstractUserInterface implements
 				}
 				final int rval;
 				if (FileWidget.SAVE_STYLE.equals(style)) {
-					rval = chooser.showSaveDialog(appFrame);
+					rval = chooser.showSaveDialog(parent);
 				}
 				else { // default behavior
-					rval = chooser.showOpenDialog(appFrame);
+					rval = chooser.showOpenDialog(parent);
 				}
 				if (rval == JFileChooser.APPROVE_OPTION) {
 					result[0] = chooser.getSelectedFile();
@@ -166,6 +180,20 @@ public abstract class AbstractSwingUI extends AbstractUserInterface implements
 
 	@Override
 	public File[] chooseFiles(final File parent, final File[] files, final FileFilter filter, final String style) {
+		return chooseFiles(null, parent, files, filter, style);
+	}
+
+	/**
+	 * Like {@link #chooseFiles(File, File[], FileFilter, String)}, but the
+	 * dialog is shown relative to the given component.
+	 *
+	 * @param owner The component to center the dialog on. If {@code null}, the
+	 *          application frame is used.
+	 */
+	public File[] chooseFiles(final Component owner, final File parent,
+		final File[] files, final FileFilter filter, final String style)
+	{
+		final Component dialogParent = owner != null ? owner : appFrame;
 		final File[][] result = new File[1][];
 		try {
 			// NB: We show the JFileChooser on the EDT because otherwise there could
@@ -202,7 +230,7 @@ public abstract class AbstractSwingUI extends AbstractUserInterface implements
 					};
 					chooser.setFileFilter(fileFilter);
 				}
-				int rval = chooser.showOpenDialog(appFrame);
+				int rval = chooser.showOpenDialog(dialogParent);
 				if (rval == JFileChooser.APPROVE_OPTION) {
 					result[0] = chooser.getSelectedFiles();
 				}
