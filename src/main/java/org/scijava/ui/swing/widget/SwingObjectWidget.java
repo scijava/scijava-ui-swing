@@ -108,8 +108,23 @@ public class SwingObjectWidget extends SwingInputWidget<Object> implements
 	@Override
 	public void doRefresh() {
 		final Object value = get().getValue();
-		if (value == comboBox.getSelectedItem()) return; // no change
-		comboBox.setSelectedItem(value);
+		if (comboBox.getSelectedItem().toString().equals(nameOf(value))) return; // no change
+		updateComboBox(comboBox, value);
+	}
+
+	private void updateComboBox(final JComboBox<Object> comboBox, final Object value) {
+		for (int i = 0; i < comboBox.getModel().getSize(); i++)
+		{
+		    if (comboBox.getItemAt(i).toString().equals(nameOf(value)))
+		    {
+		    	comboBox.setSelectedIndex(i);
+		        break;
+		    }
+		}
+	}
+
+	private String nameOf(final Object value) {
+		return value == null ? "" : context().service(ObjectService.class).getName(value);
 	}
 
 	private class NamedObjectCellRenderer implements ListCellRenderer<Object> {
@@ -120,7 +135,7 @@ public class SwingObjectWidget extends SwingInputWidget<Object> implements
 		public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected,
 				boolean cellHasFocus) {
 			JLabel renderer = (JLabel) defaultRenderer.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-			renderer.setText(value == null ? "" : context().service(ObjectService.class).getName(value));
+			renderer.setText(nameOf(value));
 			renderer.setToolTipText(value == null ? null : value.toString());
 			return renderer;
 		}
