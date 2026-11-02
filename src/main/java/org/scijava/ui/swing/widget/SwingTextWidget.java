@@ -41,6 +41,7 @@ import javax.swing.text.Document;
 import javax.swing.text.DocumentFilter;
 import javax.swing.text.JTextComponent;
 
+import com.formdev.flatlaf.FlatClientProperties;
 import org.scijava.log.LogService;
 import org.scijava.plugin.Plugin;
 import org.scijava.widget.InputWidget;
@@ -102,10 +103,12 @@ public class SwingTextWidget extends SwingInputWidget<String> implements
 		}
 		else if (model.isStyle(TextWidget.PASSWORD_STYLE)) {
 			textComponent = new JPasswordField("", columns);
+			textComponent.putClientProperty(FlatClientProperties.STYLE, "showRevealButton: true; showCapsLock: true");
 		}
 		else {
 			textComponent = new JTextField("", columns);
 		}
+		textComponent.putClientProperty(FlatClientProperties.TEXT_FIELD_SHOW_CLEAR_BUTTON, true);
 		setToolTip(textComponent);
 		getComponent().add(addScrollPane ? new JScrollPane(textComponent) : textComponent);
 		limitLength();

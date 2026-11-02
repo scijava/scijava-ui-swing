@@ -29,6 +29,7 @@
 
 package org.scijava.ui.swing.console;
 
+import java.awt.Color;
 import java.awt.Font;
 import java.util.Collections;
 import java.util.Iterator;
@@ -37,6 +38,7 @@ import javax.swing.JComponent;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTextPane;
+import javax.swing.UIManager;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultStyledDocument;
@@ -68,7 +70,18 @@ class ItemTextPane {
 
 	private DocumentCalculator initialCalculator = null;
 
-	private JTextPane textPane = new JTextPane();
+	private JTextPane textPane = new JTextPane() {
+
+		@Override
+		public void updateUI() {
+			super.updateUI();
+			// NB: FlatLaf paints non-editable text with a gray inactive background.
+			// Use the (plain, non-UIResource) tree background instead, so that the
+			// log matches the sources panel. Re-applied on look and feel changes
+			final Color bg = UIManager.getColor("Tree.background");
+			if (bg != null) setBackground(new Color(bg.getRGB()));
+		}
+	};
 
 	private JScrollPane scrollPane = new JScrollPane(textPane);
 

@@ -133,7 +133,9 @@ public class SwingNumberWidget extends SwingInputWidget<Number> implements
 		spinner.setPreferredSize(spinnerSize);
 		fixSpinner(type);
 		setToolTip(spinner);
-		getComponent().add(spinner);
+		// add spacing only if there is a slider or scroll bar before the spinner
+		getComponent().add(spinner, slider != null || scrollBar != null
+			? "gapleft 6" : "");
 		limitWidth(200);
 		spinner.addChangeListener(this);
 

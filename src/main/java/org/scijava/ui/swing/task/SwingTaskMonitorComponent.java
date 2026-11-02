@@ -261,7 +261,7 @@ public class SwingTaskMonitorComponent {
 					Task selectedTask = taskTableModel.getTask(row);
 					if (selectedTask!=null) {
 						if (SwingTaskMonitorComponent.this.confirmBeforeCancel) {
-							int userconfirmation = JOptionPane.showConfirmDialog(null, "Do you really want to cancel this task ?", "Canceling " + selectedTask.getName(), JOptionPane.YES_NO_OPTION);
+							int userconfirmation = JOptionPane.showConfirmDialog(null, "Do you really want to cancel this task?", "Canceling " + selectedTask.getName(), JOptionPane.YES_NO_OPTION);
 							if (userconfirmation == JOptionPane.YES_OPTION) {
 								selectedTask.cancel("User cancellation (table task)");
 							}

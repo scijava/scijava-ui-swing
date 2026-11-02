@@ -397,7 +397,8 @@ public class WatchEventsFrame extends JFrame implements ActionListener,
 		final DefaultMutableTreeNode node)
 	{
 		@SuppressWarnings("unchecked")
-		final Enumeration<DefaultMutableTreeNode> en = node.children();
+		final Enumeration<DefaultMutableTreeNode> en =
+			(Enumeration<DefaultMutableTreeNode>) (Enumeration<?>) node.children();
 		return new IteratorPlus<>(en);
 	}
 
