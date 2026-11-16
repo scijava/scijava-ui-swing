@@ -35,6 +35,8 @@ import com.formdev.flatlaf.FlatIntelliJLaf;
 import com.formdev.flatlaf.FlatLaf;
 import com.formdev.flatlaf.FlatLightLaf;
 
+import java.awt.EventQueue;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -107,6 +109,25 @@ public class SwingLookAndFeelService extends AbstractService implements
 	 * @throws IllegalArgumentException If the given look and feel is unknown.
 	 */
 	public void setLookAndFeel(final String lookAndFeel) {
+		if (!EventQueue.isDispatchThread()) {
+			// Note: Changing the L+F off the EDT races with Swing's own layout
+			// and painting, which observe half-installed UI delegates and crash.
+			try {
+				EventQueue.invokeAndWait(() -> setLookAndFeel(lookAndFeel));
+			}
+			catch (final InvocationTargetException exc) {
+				final Throwable cause = exc.getCause();
+				if (cause instanceof RuntimeException) throw (RuntimeException) cause;
+				if (cause instanceof Error) throw (Error) cause;
+				throw new RuntimeException(cause);
+			}
+			catch (final InterruptedException exc) {
+				Thread.currentThread().interrupt();
+				throw new RuntimeException(exc);
+			}
+			return;
+		}
+
 		if (factories == null) initFactories();
 
 		if (factories.containsKey(lookAndFeel)) {
